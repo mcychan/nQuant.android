@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                     output.close();
                 }
 
-                PnnQuantizer pnnQuantizer = new PnnQuantizer(file.getAbsolutePath());
+                PnnQuantizer pnnQuantizer = new PnnLABQuantizer(file.getAbsolutePath());
                 return pnnQuantizer.convert(256, true);
 
             } catch (IOException e) {
