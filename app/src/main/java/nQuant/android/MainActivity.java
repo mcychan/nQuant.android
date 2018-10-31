@@ -31,6 +31,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class ConversionTask extends AsyncTask<Object,Void,Bitmap> {
+        private ProgressDialog dialog;
+
+        public ConversionTask(MainActivity activity) {
+            dialog = new ProgressDialog(activity);
+        }
+
+        @Override
+        protected void onPreExecute() {
+            setProgressBarIndeterminateVisibility(true);
+            dialog.setMessage("Converting...");
+            dialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            setProgressBarIndeterminateVisibility(false);
+            image.setImageBitmap(result);
+            image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
+            image.getLayoutParams().height = (image.getLayoutParams().width * result.getHeight()) / result.getWidth();
+            image.setScaleType(ImageView.ScaleType.FIT_XY);
+            button.setText("Quit");
+            button.setEnabled(true);
+
+            if (dialog.isShowing())
+                dialog.dismiss();
+        }
+
         @Override
         protected Bitmap doInBackground(Object... params) {
             try {
@@ -60,9 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void addListenerOnButton() {
         image = (ImageView) findViewById(R.id.imageView1);
-        final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-        dialog.setMessage("Converting...");
-        dialog.setIndeterminate(true);
+
         button = (Button) findViewById(R.id.btnChangeImage);
         button.setTransformationMethod(null);
         button.setOnClickListener(new OnClickListener() {
@@ -76,23 +101,12 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 try {
-                    setProgressBarIndeterminateVisibility(true);
                     button.setEnabled(false);
-                    dialog.show();
-                    Bitmap bitmap = new ConversionTask().execute().get();
-                    image.setImageBitmap(bitmap);
-                    image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
-                    image.getLayoutParams().height = (image.getLayoutParams().width * bitmap.getHeight()) / bitmap.getWidth();
-                    image.setScaleType(ImageView.ScaleType.FIT_XY);
-                    button.setText("Quit");
-                    button.setEnabled(true);
+                    new ConversionTask(MainActivity.this).execute();
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(MainActivity.this, "Error! " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                } finally {
-                    setProgressBarIndeterminateVisibility(false);
-                    if (dialog.isShowing())
-                        dialog.dismiss();
                 }
             }
         });
