@@ -31,9 +31,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class ConversionTask extends AsyncTask<Object,Void,Bitmap> {
-        private ProgressDialog dialog;
+        private final String filePath;
+        private final ProgressDialog dialog;
 
-        public ConversionTask(MainActivity activity) {
+        public ConversionTask(MainActivity activity, String filePath) {
+            this.filePath = filePath;
             dialog = new ProgressDialog(activity);
         }
 
@@ -61,22 +63,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Bitmap doInBackground(Object... params) {
             try {
-                File file = new File(getCacheDir(), "sample.jpg");
-                if (!file.exists()) {
-                    InputStream asset = getResources().openRawResource(+ R.drawable.sample);
-                    FileOutputStream output = new FileOutputStream(file);
-                    final byte[] buffer = new byte[1024];
-                    int size;
-                    while ((size = asset.read(buffer)) != -1) {
-                        output.write(buffer, 0, size);
-                    }
-                    asset.close();
-                    output.close();
-                }
-
-                PnnQuantizer pnnQuantizer = new PnnLABQuantizer(file.getAbsolutePath());
+                PnnQuantizer pnnQuantizer = new PnnLABQuantizer(filePath);
                 return pnnQuantizer.convert(256, true);
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             } catch (Exception e) {
@@ -102,7 +90,21 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
                     button.setEnabled(false);
-                    new ConversionTask(MainActivity.this).execute();
+
+                    File file = new File(getCacheDir(), "sample.jpg");
+                    if (!file.exists()) {
+                        InputStream asset = getResources().openRawResource(+ R.drawable.sample);
+                        FileOutputStream output = new FileOutputStream(file);
+                        final byte[] buffer = new byte[1024];
+                        int size;
+                        while ((size = asset.read(buffer)) != -1) {
+                            output.write(buffer, 0, size);
+                        }
+                        asset.close();
+                        output.close();
+                    }
+
+                    new ConversionTask(MainActivity.this, file.getAbsolutePath()).execute();
 
                 } catch (Exception e) {
                     e.printStackTrace();
