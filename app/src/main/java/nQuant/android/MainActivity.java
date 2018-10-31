@@ -59,32 +59,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addListenerOnButton() {
-
         image = (ImageView) findViewById(R.id.imageView1);
-
+        final ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+        dialog.setMessage("Converting...");
+        dialog.setIndeterminate(true);
         button = (Button) findViewById(R.id.btnChangeImage);
         button.setTransformationMethod(null);
         button.setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
-                ProgressDialog dialog = null;
+                if("Quit".equals(button.getText())) {
+                    MainActivity.this.finish();
+                    System.exit(0);
+                    return;
+                }
+
                 try {
                     setProgressBarIndeterminateVisibility(true);
-                    dialog = ProgressDialog.show(MainActivity.this, "nQuant.android",
-                            "Converting...", true, false);
+                    button.setEnabled(false);
+                    dialog.show();
                     Bitmap bitmap = new ConversionTask().execute().get();
+                    image.setImageBitmap(bitmap);
                     image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
                     image.getLayoutParams().height = (image.getLayoutParams().width * bitmap.getHeight()) / bitmap.getWidth();
                     image.setScaleType(ImageView.ScaleType.FIT_XY);
-                    image.setImageBitmap(bitmap);
-                    button.setEnabled(false);
+                    button.setText("Quit");
+                    button.setEnabled(true);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Toast.makeText(MainActivity.this, "Error! " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 } finally {
                     setProgressBarIndeterminateVisibility(false);
-                    if (dialog != null && dialog.isShowing())
+                    if (dialog.isShowing())
                         dialog.dismiss();
                 }
             }
