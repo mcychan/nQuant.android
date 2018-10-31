@@ -12,6 +12,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.nQuant.PnnLABQuantizer;
+import com.android.nQuant.PnnQuantizer;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
