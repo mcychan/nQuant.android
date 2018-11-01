@@ -340,9 +340,8 @@ public class PnnQuantizer {
 					int offset = getColorIndex(c1);
 					if (lookup[offset] == 0)
 						lookup[offset] = nearestColorIndex(palette, squares3, c1) + 1;
-					qPixels[pixelIndex] = (short) (lookup[offset] - 1);
 
-					int c2 = palette[qPixels[pixelIndex]];
+					int c2 = qPixels[pixelIndex] = palette[lookup[offset] - 1];
 
 					r_pix = limtb[r_pix - Color.red(c2) + 256];
 					g_pix = limtb[g_pix - Color.green(c2) + 256];
@@ -387,11 +386,11 @@ public class PnnQuantizer {
 
 		if(hasSemiTransparency || nMaxColors < 256) {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = nearestColorIndex(palette, squares3, pixels[i]);
+				qPixels[i] = palette[nearestColorIndex(palette, squares3, pixels[i])];
 		}
 		else {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = closestColorIndex(palette, squares3, pixels[i]);
+				qPixels[i] = palette[closestColorIndex(palette, squares3, pixels[i])];
 		}
 
 		return true;
@@ -546,9 +545,6 @@ public class PnnQuantizer {
 		int[] qPixels = new int[cPixels.length];
 		quantize_image(cPixels, palette, qPixels, dither);
 		closestMap.clear();
-
-        for (int i = 0; i < qPixels.length; i++)
-            qPixels[i] = palette[qPixels[i]];
 
         if (hasTransparency)
             return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);

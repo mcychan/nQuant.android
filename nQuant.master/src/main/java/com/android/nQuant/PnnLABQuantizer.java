@@ -1,16 +1,17 @@
 package com.android.nQuant;
 
-import android.graphics.Color;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+
+import com.android.nQuant.CIELABConvertor.Lab;
+import com.android.nQuant.CIELABConvertor.MutableDouble;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
-import com.android.nQuant.CIELABConvertor.Lab;
-import com.android.nQuant.CIELABConvertor.MutableDouble;
 
 public class PnnLABQuantizer extends PnnQuantizer {
 	private Map<Integer, Lab> pixelMap = new HashMap<>();	
@@ -340,12 +341,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					int offset = getColorIndex(c1);
 					if (lookup[offset] == 0)
 						lookup[offset] = nearestColorIndex(palette, c1) + 1;
-                    qPixels[pixelIndex] = (short) (lookup[offset] - 1);
+					int c2 = qPixels[pixelIndex] = palette[lookup[offset] - 1];
 
-                    int c2 = palette[qPixels[pixelIndex]];
 					if (Color.alpha(c2) < BYTE_MAX && Color.alpha(c) == BYTE_MAX) {
 						lookup[offset] = nearestColorIndex(palette, pixels[pixelIndex]) + 1;
-						qPixels[pixelIndex] = (short) (lookup[offset] - 1);
+						qPixels[pixelIndex] = palette[lookup[offset] - 1];
 					}
 
 					r_pix = limtb[r_pix - Color.red(c2) + 256];
@@ -391,11 +391,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		if(hasSemiTransparency || nMaxColors < 256) {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = nearestColorIndex(palette, pixels[i]);
+				qPixels[i] = palette[nearestColorIndex(palette, pixels[i])];
 		}
 		else {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = closestColorIndex(palette, pixels[i]);
+				qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
 		}
 
 		return true;
@@ -444,9 +444,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		quantize_image(cPixels, palette, qPixels, dither);
 		pixelMap.clear();
 		closestMap.clear();
-
-        for (int i = 0; i < qPixels.length; i++)
-            qPixels[i] = palette[qPixels[i]];
 
 		if (hasTransparency)
 			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
