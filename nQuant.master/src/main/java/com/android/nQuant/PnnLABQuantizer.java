@@ -14,18 +14,18 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
-	private Map<Integer, Lab> pixelMap = new HashMap<>();	
-	
+	private Map<Integer, Lab> pixelMap = new HashMap<>();
+
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
 	}
 
-	private static class Pnnbin {
+	private static final class Pnnbin {
 		double ac = 0, Lc = 0, Ac = 0, Bc = 0, err = 0;
 		int cnt = 0;
 		int nn, fw, bk, tm, mtm;
 	}
-	
+
 	private Lab getLab(final int c)
 	{
 		Lab lab1 = pixelMap.get(c);
@@ -48,7 +48,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double wA = bin1.Ac;
 		double wB = bin1.Bc;
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
-			double nerr = Math.pow((bins[i].ac - wa), 2) + Math.pow((bins[i].Lc - wL), 2) + Math.pow((bins[i].Ac - wA), 2) + Math.pow((bins[i].Bc - wB), 2);
+			double nerr = sqr(bins[i].ac - wa) + sqr(bins[i].Lc - wL) + sqr(bins[i].Ac - wA) + sqr(bins[i].Bc - wB);
 			double n2 = bins[i].cnt;
 			nerr *= (n1 * n2) / (n1 + n2);
 			if (nerr >= err)
@@ -60,11 +60,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		bin1.nn = nn;
 	}
 
-	private Integer[] pnnquan(final int[] pixels, Pnnbin[] bins, int nMaxColors)
+	private Integer[] pnnquan(final int[] pixels, int nMaxColors)
 	{
+		Pnnbin[] bins = new Pnnbin[65536];
 		int[] heap = new int[65537];
 		double err, n1, n2;
-		int l, l2, h, b1, maxbins, extbins;
 
 		/* Build histogram */
 		for (final int pixel : pixels) {
@@ -83,9 +83,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		/* Cluster nonempty bins at one end of array */
-		maxbins = 0;
+		int maxbins = 0;
 
-		for (int i = 0; i < 65536; ++i) {
+		for (int i = 0; i < bins.length; ++i) {
 			if (bins[i] == null)
 				continue;
 
@@ -104,6 +104,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		// !!! Already zeroed out by calloc()
 		//	bins[0].bk = bins[i].fw = 0;
 
+        int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
 		for (int i = 0; i < maxbins; i++) {
 			find_nn(bins, i);
@@ -119,12 +120,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		/* Merge bins which increase error the least */
-		extbins = maxbins - nMaxColors;
+		int extbins = maxbins - nMaxColors;
 		for (int i = 0; i < extbins; ) {
-			/* Use heap to find which bins to merge */
+            Pnnbin tb = null;
+            /* Use heap to find which bins to merge */
 			for (;;) {
-				Pnnbin tb = bins[b1 = heap[1]]; /* One with least error */
-											   /* Is stored error up to date? */
+			    int b1 = heap[1];
+				tb = bins[b1]; /* One with least error */
+				/* Is stored error up to date? */
 				if ((tb.tm >= tb.mtm) && (bins[tb.nn].mtm <= tb.tm))
 					break;
 				if (tb.mtm == 0xFFFF) /* Deleted node */
@@ -147,7 +150,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			}
 
 			/* Do a merge */
-			Pnnbin tb = bins[b1];
 			Pnnbin nb = bins[tb.nn];
 			n1 = tb.cnt;
 			n2 = nb.cnt;
@@ -194,26 +196,26 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		for (short i=0; i<palette.length; ++i) {
 			int c2 = palette[i];
 			Lab lab2 = getLab(c2);
-			
-			double curdist = Math.pow(Color.alpha(c2) - Color.alpha(c), 2.0);
+
+			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
 			if (palette.length < 256) {
 				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
-				curdist += Math.pow(deltaL_prime_div_k_L_S_L, 2.0);
+				curdist += sqr(deltaL_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
 
 				MutableDouble a1Prime = new MutableDouble(), a2Prime = new MutableDouble(), CPrime1 = new MutableDouble(), CPrime2 = new MutableDouble();
 				double deltaC_prime_div_k_L_S_L = CIELABConvertor.C_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2);
-				curdist += Math.pow(deltaC_prime_div_k_L_S_L, 2.0);
+				curdist += sqr(deltaC_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
 
 				MutableDouble barCPrime = new MutableDouble(), barhPrime = new MutableDouble();
 				double deltaH_prime_div_k_L_S_L = CIELABConvertor.H_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, barCPrime, barhPrime);
-				curdist += Math.pow(deltaH_prime_div_k_L_S_L, 2.0);
+				curdist += sqr(deltaH_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
 
@@ -222,15 +224,15 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					continue;
 			}
 			else {
-				curdist += Math.pow(lab2.L - lab1.L, 2.0);
+				curdist += sqr(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
 
-				curdist += Math.pow(lab2.A - lab1.A, 2.0);
+				curdist += sqr(lab2.A - lab1.A);
 				if (curdist > mindist)
 					continue;
 
-				curdist += Math.pow(lab2.B - lab1.B, 2.0);
+				curdist += sqr(lab2.B - lab1.B);
 				if (curdist > mindist)
 					continue;
 			}
@@ -253,8 +255,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; k++) {
 				int c2 = palette[k];
 				Lab lab2 = getLab(c2);
-				
-				closest[4] = (short) (Math.pow(lab2.alpha - lab1.alpha, 2) + CIELABConvertor.CIEDE2000(lab2, lab1));
+
+				closest[4] = (short) (sqr(lab2.alpha - lab1.alpha) + CIELABConvertor.CIEDE2000(lab2, lab1));
 				//closest[4] = Math.abs(lab2.alpha - lab1.alpha) + Math.abs(lab2.L - lab1.L) + Math.abs(lab2.A - lab1.A) + Math.abs(lab2.B - lab1.B);
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
@@ -327,7 +329,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					row0 = erowerr;
 					row1 = orowerr;
 				}
-				
+
 				int cursor0 = DJ, cursor1 = width * DJ;
 				row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
 				for (short j = 0; j < width; j++) {
@@ -403,7 +405,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 	@Override
 	public Bitmap convert(int nMaxColors, boolean dither) {
-		final int[] cPixels = new int[pixels.length];		
+		final int[] cPixels = new int[pixels.length];
 		for (int i =0; i<cPixels.length; ++i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
@@ -414,21 +416,19 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (alfa < BYTE_MAX) {
 				hasSemiTransparency = true;
 				if (alfa == 0) {
-					hasTransparency = true;
 					m_transparentColor = cPixels[i];
 				}
-			}			
+			}
 		}
 
 		if (nMaxColors > 256) {
 			int[] qPixels = new int[cPixels.length];
 			return quantize_image(cPixels, qPixels);
 		}
-		
-		Pnnbin[] bins = new Pnnbin[65536];
+
 		Integer[] palette = new Integer[nMaxColors];
 		if (nMaxColors > 2)
-			palette = pnnquan(cPixels, bins, nMaxColors);
+			palette = pnnquan(cPixels, nMaxColors);
 		else {
 			if (hasSemiTransparency) {
 				palette[0] = Color.argb(0, 0, 0, 0);
@@ -440,7 +440,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			}
 		}
 
-		int[] qPixels = new int[cPixels.length];		
+		int[] qPixels = new int[cPixels.length];
 		quantize_image(cPixels, palette, qPixels, dither);
 		pixelMap.clear();
 		closestMap.clear();
@@ -449,5 +449,5 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
 		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
 	}
-	
+
 }

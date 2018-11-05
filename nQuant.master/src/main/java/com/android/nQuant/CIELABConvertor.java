@@ -1,6 +1,8 @@
 package com.android.nQuant;
 
 import android.graphics.Color;
+import android.support.v4.graphics.ColorUtils;
+
 import java.math.BigDecimal;
 
 public class CIELABConvertor {
@@ -54,48 +56,20 @@ public class CIELABConvertor {
 	
 	static Lab RGB2LAB(final int c1)
 	{
-		double r = Color.red(c1) / 255.0, g = Color.green(c1) / 255.0, b = Color.blue(c1) / 255.0;
-		double x, y, z;
-
-		r = (r > 0.04045) ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
-		g = (g > 0.04045) ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
-		b = (b > 0.04045) ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
-
-		x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
-		y = (r * 0.2126 + g * 0.7152 + b * 0.0722) / 1.00000;
-		z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
-
-		x = (x > 0.008856) ? Math.cbrt(x) : (7.787 * x) + 16.0 / 116.0;
-		y = (y > 0.008856) ? Math.cbrt(y) : (7.787 * y) + 16.0 / 116.0;
-		z = (z > 0.008856) ? Math.cbrt(z) : (7.787 * z) + 16.0 / 116.0;
+		double[] labs = new double[3];
+		ColorUtils.colorToLAB(c1, labs);
 
 		Lab lab = new Lab();
 		lab.alpha = Color.alpha(c1);
-		lab.L = (116 * y) - 16;
-		lab.A = 500 * (x - y);
-		lab.B = 200 * (y - z);
+		lab.L = labs[0];
+		lab.A = labs[1];
+		lab.B = labs[2];
 		return lab;
 	}
 		
 	static int LAB2RGB(final Lab lab){
-		double y = (lab.L + 16) / 116;
-		double x = lab.A / 500 + y;
-		double z = y - lab.B / 200;
-		double r, g, b;
-
-		x = 0.95047 * ((x * x * x > 0.008856) ? x * x * x : (x - 16.0 / 116.0) / 7.787);
-		y = 1.00000 * ((y * y * y > 0.008856) ? y * y * y : (y - 16.0 / 116.0) / 7.787);
-		z = 1.08883 * ((z * z * z > 0.008856) ? z * z * z : (z - 16.0 / 116.0) / 7.787);
-
-		r = x *  3.2406 + y * -1.5372 + z * -0.4986;
-		g = x * -0.9689 + y *  1.8758 + z *  0.0415;
-		b = x *  0.0557 + y * -0.2040 + z *  1.0570;
-
-		r = (r > 0.0031308) ? (1.055 * Math.pow(r, 1.0 / 2.4) - 0.055) : 12.92 * r;
-		g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1.0 / 2.4) - 0.055) : 12.92 * g;
-		b = (b > 0.0031308) ? (1.055 * Math.pow(b, 1.0 / 2.4) - 0.055) : 12.92 * b;
-
-		return Color.argb(lab.alpha, (int) (Math.max(0, Math.min(1, r)) * BYTE_MAX), (int) (Math.max(0, Math.min(1, g)) * BYTE_MAX), (int) (Math.max(0, Math.min(1, b)) * BYTE_MAX));
+		int color = ColorUtils.LABToColor(lab.L, lab.A, lab.B);
+		return ColorUtils.setAlphaComponent(color, lab.alpha);
 	}
 
 	/*******************************************************************************
