@@ -431,6 +431,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (alfa < BYTE_MAX) {
 				hasSemiTransparency = true;
 				if (alfa == 0) {
+					m_transparentPixelIndex = i;
 					m_transparentColor = cPixels[i];
 				}
 			}
