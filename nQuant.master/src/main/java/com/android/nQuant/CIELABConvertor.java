@@ -48,7 +48,7 @@ public class CIELABConvertor {
 	}
 	
 	static class Lab {
-		int alpha = BYTE_MAX;
+		double alpha = BYTE_MAX;
 		double A = 0.0;
 		double B = 0.0;
 		double L = 0.0;
@@ -69,7 +69,7 @@ public class CIELABConvertor {
 		
 	static int LAB2RGB(final Lab lab){
 		int color = ColorUtils.LABToColor(lab.L, lab.A, lab.B);
-		return ColorUtils.setAlphaComponent(color, lab.alpha);
+		return ColorUtils.setAlphaComponent(color, (int) lab.alpha);
 	}
 
 	/*******************************************************************************

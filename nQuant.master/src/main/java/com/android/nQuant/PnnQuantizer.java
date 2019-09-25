@@ -1,14 +1,16 @@
 package com.android.nQuant;
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev
-Copyright (c) 2018 Miller Cy Chan
+Copyright (c) 2018-2019 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
-import android.graphics.Color;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +19,10 @@ import java.util.Random;
 public class PnnQuantizer {
 	protected final short SHORT_MAX = Short.MAX_VALUE;
 	protected final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
-	protected boolean hasTransparency = false, hasSemiTransparency = false;
+	protected boolean hasSemiTransparency = false;
+	protected int m_transparentPixelIndex = -1;
 	protected int width, height;
+	protected double PR = .2126, PG = .7152, PB = .0722;
 	protected int pixels[] = null;
 	protected Integer m_transparentColor;
 	protected Map<Integer, short[]> closestMap = new HashMap<>();
@@ -45,11 +49,11 @@ public class PnnQuantizer {
 		int nn, fw, bk, tm, mtm;
 	}
 
-	protected int getColorIndex(final int c)
+	protected int getColorIndex(final int c, boolean hasSemiTransparency, int transparentPixelIndex )
 	{
 		if(hasSemiTransparency)
 			return (Color.alpha(c) & 0xF0) << 8 | (Color.red(c) & 0xF0) << 4 | (Color.green(c) & 0xF0) | (Color.blue(c) >> 4);
-		if (hasTransparency)
+		if (transparentPixelIndex >= 0)
 			return (Color.alpha(c) & 0x80) << 8 | (Color.red(c) & 0xF8) << 7 | (Color.green(c) & 0xF8) << 2 | (Color.blue(c) >> 3);
 		return (Color.red(c) & 0xF8) << 8 | (Color.green(c) & 0xFC) << 3 | (Color.blue(c) >> 3);
 	}
@@ -93,7 +97,7 @@ public class PnnQuantizer {
 		for (final int pixel : pixels) {
 			// !!! Can throw gamma correction in here, but what to do about perceptual
 			// !!! nonuniformity then?
-			int index = getColorIndex(pixel);
+			int index = getColorIndex(pixel, hasSemiTransparency, m_transparentPixelIndex);
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
@@ -197,11 +201,8 @@ public class PnnQuantizer {
 		for (int i = 0;; ++k) {
 			int alpha = (int) Math.rint(bins[i].ac);
 			palette.add(Color.argb(alpha, (int) Math.rint(bins[i].rc), (int) Math.rint(bins[i].gc), (int) Math.rint(bins[i].bc)));
-			if (hasTransparency && palette.get(k).equals(m_transparentColor)) {
-                Integer temp = palette.get(0);
-				palette.set(0, palette.get(k));
-				palette.set(k, temp);
-			}
+			if (m_transparentPixelIndex >= 0 && palette.get(k).equals(m_transparentColor))
+				Collections.swap(palette, 0, k);
 
 			if ((i = bins[i].fw) == 0)
 				break;
@@ -210,40 +211,40 @@ public class PnnQuantizer {
 		return palette.toArray(new Integer[0]);
 	}
 
-	private short nearestColorIndex(final Integer[] palette, final int[] squares3, final int c)
+	private short nearestColorIndex(final Integer[] palette, final int nMaxColors, final int c)
 	{
 		short k = 0;
-		int curdist, mindist = SHORT_MAX;
-		for (short i=0; i<palette.length; ++i) {
-            int c2 = palette[i];
+		double curdist, mindist = SHORT_MAX;
+		for (int i=0; i<nMaxColors; ++i) {
+			int c2 = palette[i];
 
-			int adist = Math.abs(Color.alpha(c2) - Color.alpha(c));
-			curdist = squares3[adist];
+			double adist = Math.abs(Color.alpha(c2) - Color.alpha(c));
+			curdist = adist;
 			if (curdist > mindist)
 				continue;
 
-			int rdist = Math.abs(Color.red(c2) - Color.red(c));
-			curdist += squares3[rdist];
+			double rdist = PR * Math.abs(Color.red(c2) - Color.red(c));
+			curdist += rdist;
 			if (curdist > mindist)
 				continue;
 
-			int gdist = Math.abs(Color.green(c2) - Color.green(c));
-			curdist += squares3[gdist];
+			double gdist = PG * Math.abs(Color.green(c2) - Color.green(c));
+			curdist += gdist;
 			if (curdist > mindist)
 				continue;
 
-			int bdist = Math.abs(Color.blue(c2) - Color.blue(c));
-			curdist += squares3[bdist];
+			double bdist = PB * Math.abs(Color.blue(c2) - Color.blue(c));
+			curdist += bdist;
 			if (curdist > mindist)
 				continue;
 
 			mindist = curdist;
-			k = i;
+			k = (short) i;
 		}
 		return k;
 	}
 
-	private short closestColorIndex(final Integer[] palette, final int[] squares3, final int c)
+	private short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
 		short[] closest = new short[5];
@@ -286,14 +287,6 @@ public class PnnQuantizer {
 	boolean quantize_image(final int[] pixels, final Integer[] palette, int[] qPixels, final boolean dither)
 	{
 		int nMaxColors = palette.length;
-		int[] sqr_tbl = new int[BYTE_MAX + BYTE_MAX + 1];
-
-		for (int i = (-BYTE_MAX); i <= BYTE_MAX; i++)
-			sqr_tbl[i + BYTE_MAX] = i * i;
-
-		int[] squares3 = new int[sqr_tbl.length - BYTE_MAX];
-		for (int i = 0; i < squares3.length; i++)
-			squares3[i] = sqr_tbl[i + BYTE_MAX];
 
 		int pixelIndex = 0;
 		if (dither) {
@@ -344,9 +337,9 @@ public class PnnQuantizer {
 					a_pix = clamp[((row0[cursor0 + 3] + 0x1008) >> 4) + Color.alpha(c)];
 
 					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-					int offset = getColorIndex(c1);
+					int offset = getColorIndex(c1, hasSemiTransparency, m_transparentPixelIndex);
 					if (lookup[offset] == 0)
-						lookup[offset] = nearestColorIndex(palette, squares3, c1) + 1;
+						lookup[offset] = nearestColorIndex(palette, nMaxColors, c1) + 1;
 
 					int c2 = qPixels[pixelIndex] = palette[lookup[offset] - 1];
 
@@ -393,11 +386,11 @@ public class PnnQuantizer {
 
 		if(hasSemiTransparency || nMaxColors < 256) {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = palette[nearestColorIndex(palette, squares3, pixels[i])];
+				qPixels[i] = palette[nearestColorIndex(palette, nMaxColors, pixels[i])];
 		}
 		else {
 			for (int i = 0; i < qPixels.length; i++)
-				qPixels[i] = palette[closestColorIndex(palette, squares3, pixels[i])];
+				qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
 		}
 
 		return true;
@@ -454,12 +447,12 @@ public class PnnQuantizer {
 				a_pix = clamp[((row0[cursor0 + 3] + 0x1008) >> 4) + Color.alpha(c)];
 
 				int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-				int offset = getColorIndex(c1);
+				int offset = getColorIndex(c1, hasSemiTransparency, m_transparentPixelIndex);
 				if (lookup[offset] == 0) {
 					int argb1 = Color.argb(BYTE_MAX, (Color.red(c1) & 0xF8), (Color.green(c1) & 0xFC), (Color.blue(c1) & 0xF8));
 					if (hasSemiTransparency)
 						argb1 = Color.argb((Color.alpha(c1) & 0xF0), (Color.red(c1) & 0xF0), (Color.green(c1) & 0xF0), (Color.blue(c1) & 0xF0));
-					else if (hasTransparency)
+					else if (m_transparentPixelIndex >= 0)
 						argb1 = Color.argb((Color.alpha(c1) < BYTE_MAX) ? 0 : BYTE_MAX, (Color.red(c1) & 0xF8), (Color.green(c1) & 0xF8), (Color.blue(c1) & 0xF8));
 					lookup[offset] = argb1;
 				}
@@ -505,7 +498,7 @@ public class PnnQuantizer {
 			odd_scanline = !odd_scanline;
 		}
 
-        if (hasTransparency)
+        if (m_transparentPixelIndex >= 0)
             return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
 		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
 	}
@@ -522,7 +515,7 @@ public class PnnQuantizer {
 			if (alfa < BYTE_MAX) {
 				hasSemiTransparency = true;
 				if (alfa == 0) {
-					hasTransparency = true;
+                    m_transparentPixelIndex = i;
 					m_transparentColor = cPixels[i];
 				}
 			}
@@ -533,6 +526,8 @@ public class PnnQuantizer {
 			return quantize_image(cPixels, qPixels);
 		}
 
+        if (hasSemiTransparency || nMaxColors <= 32)
+            PR = PG = PB = 1.0;
 		boolean quan_sqrt = nMaxColors > BYTE_MAX;
 		Integer[] palette = new Integer[nMaxColors];
 		if (nMaxColors > 2)
@@ -550,9 +545,17 @@ public class PnnQuantizer {
 
 		int[] qPixels = new int[cPixels.length];
 		quantize_image(cPixels, palette, qPixels, dither);
+        if (m_transparentPixelIndex >= 0) {
+            int k = qPixels[m_transparentPixelIndex];
+            if (nMaxColors > 2)
+                palette[k] = m_transparentColor;
+            else if (!palette[k].equals(m_transparentColor)) {
+                int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
+            }
+        }
 		closestMap.clear();
 
-        if (hasTransparency)
+        if (m_transparentPixelIndex >= 0)
             return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
         return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
 	}
