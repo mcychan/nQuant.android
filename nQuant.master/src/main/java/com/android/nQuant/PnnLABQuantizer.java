@@ -438,8 +438,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		if (nMaxColors > 256) {
-			int[] qPixels = new int[cPixels.length];
-			return quantize_image(cPixels, qPixels);
+            dither = true;
+            hasSemiTransparency = false;
 		}
 
 		if (hasSemiTransparency || nMaxColors <= 32)

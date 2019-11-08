@@ -396,113 +396,6 @@ public class PnnQuantizer {
 		return true;
 	}
 
-	protected Bitmap quantize_image(final int[] pixels, int[] qPixels)
-	{
-		int pixelIndex = 0;
-		boolean odd_scanline = false;
-		short[] row0, row1;
-		int a_pix, r_pix, g_pix, b_pix, dir, k;
-		final int DJ = 4;
-		final int DITHER_MAX = 20;
-		final int err_len = (width + 2) * DJ;
-		short[] clamp = new short[DJ * 256];
-		int[] limtb = new int[512];
-		short[] erowerr = new short[err_len];
-		short[] orowerr = new short[err_len];
-		int[] lookup = new int[65536];
-
-		for (int i = 0; i < 256; i++) {
-			clamp[i] = 0;
-			clamp[i + 256] = (short) i;
-			clamp[i + 512] = BYTE_MAX;
-			clamp[i + 768] = BYTE_MAX;
-
-			limtb[i] = -DITHER_MAX;
-			limtb[i + 256] = DITHER_MAX;
-		}
-		for (int i = -DITHER_MAX; i <= DITHER_MAX; i++)
-			limtb[i + 256] = i;
-
-		for (int i = 0; i < height; i++) {
-			if (odd_scanline) {
-				dir = -1;
-				pixelIndex += (width - 1);
-				row0 = orowerr;
-				row1 = erowerr;
-			}
-			else {
-				dir = 1;
-				row0 = erowerr;
-				row1 = orowerr;
-			}
-
-			int cursor0 = DJ, cursor1 = width * DJ;
-			row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
-			for (short j = 0; j < width; j++) {
-				int c = pixels[pixelIndex];
-
-				r_pix = clamp[((row0[cursor0] + 0x1008) >> 4) + Color.red(c)];
-				g_pix = clamp[((row0[cursor0 + 1] + 0x1008) >> 4) + Color.green(c)];
-				b_pix = clamp[((row0[cursor0 + 2] + 0x1008) >> 4) + Color.blue(c)];
-				a_pix = clamp[((row0[cursor0 + 3] + 0x1008) >> 4) + Color.alpha(c)];
-
-				int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-				int offset = getColorIndex(c1, hasSemiTransparency, m_transparentPixelIndex);
-				if (lookup[offset] == 0) {
-					int argb1 = Color.argb(BYTE_MAX, (Color.red(c1) & 0xF8), (Color.green(c1) & 0xFC), (Color.blue(c1) & 0xF8));
-					if (hasSemiTransparency)
-						argb1 = Color.argb((Color.alpha(c1) & 0xF0), (Color.red(c1) & 0xF0), (Color.green(c1) & 0xF0), (Color.blue(c1) & 0xF0));
-					else if (m_transparentPixelIndex >= 0)
-						argb1 = Color.argb((Color.alpha(c1) < BYTE_MAX) ? 0 : BYTE_MAX, (Color.red(c1) & 0xF8), (Color.green(c1) & 0xF8), (Color.blue(c1) & 0xF8));
-					lookup[offset] = argb1;
-				}
-
-				int c2 = qPixels[pixelIndex] = lookup[offset];
-
-				r_pix = limtb[r_pix - Color.red(c2) + 256];
-				g_pix = limtb[g_pix - Color.green(c2) + 256];
-				b_pix = limtb[b_pix - Color.blue(c2) + 256];
-				a_pix = limtb[a_pix - Color.alpha(c2) + 256];
-
-				k = r_pix * 2;
-				row1[cursor1 - DJ] = (short) r_pix;
-				row1[cursor1 + DJ] += (r_pix += k);
-				row1[cursor1] += (r_pix += k);
-				row0[cursor0 + DJ] += (r_pix += k);
-
-				k = g_pix * 2;
-				row1[cursor1 + 1 - DJ] = (short) g_pix;
-				row1[cursor1 + 1 + DJ] += (g_pix += k);
-				row1[cursor1 + 1] += (g_pix += k);
-				row0[cursor0 + 1 + DJ] += (g_pix += k);
-
-				k = b_pix * 2;
-				row1[cursor1 + 2 - DJ] = (short) b_pix;
-				row1[cursor1 + 2 + DJ] += (b_pix += k);
-				row1[cursor1 + 2] += (b_pix += k);
-				row0[cursor0 + 2 + DJ] += (b_pix += k);
-
-				k = a_pix * 2;
-				row1[cursor1 + 3 - DJ] = (short) a_pix;
-				row1[cursor1 + 3 + DJ] += (a_pix += k);
-				row1[cursor1 + 3] += (a_pix += k);
-				row0[cursor0 + 3 + DJ] += (a_pix += k);
-
-				cursor0 += DJ;
-				cursor1 -= DJ;
-				pixelIndex += dir;
-			}
-			if ((i % 2) == 1)
-				pixelIndex += (width + 1);
-
-			odd_scanline = !odd_scanline;
-		}
-
-        if (m_transparentPixelIndex >= 0)
-            return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
-		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
-	}
-
 	public Bitmap convert(int nMaxColors, boolean dither) {
 		final int[] cPixels = new int[pixels.length];
 		for (int i =0; i<cPixels.length; ++i) {
@@ -522,8 +415,8 @@ public class PnnQuantizer {
 		}
 
 		if (nMaxColors > 256) {
-			int[] qPixels = new int[cPixels.length];
-			return quantize_image(cPixels, qPixels);
+            dither = true;
+            hasSemiTransparency = false;
 		}
 
         if (hasSemiTransparency || nMaxColors <= 32)
