@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
+	protected double PR = .2126, PG = .7152, PB = .0722;
 	private Map<Integer, Lab> pixelMap = new HashMap<>();
 
 	public PnnLABQuantizer(String fname) throws IOException {
@@ -97,7 +98,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		for (final int pixel : pixels) {
 			// !!! Can throw gamma correction in here, but what to do about perceptual
 			// !!! nonuniformity then?
-			int index = getColorIndex(pixel, hasSemiTransparency, m_transparentPixelIndex);
+			int index = getColorIndex(pixel, hasSemiTransparency);
 			Lab lab1 = getLab(pixel);
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
@@ -310,7 +311,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (dither) {
 			boolean odd_scanline = false;
 			short[] row0, row1;
-			int a_pix, r_pix, g_pix, b_pix, dir, k;
+			int dir, k;
 			final int DJ = 4;
 			final int DITHER_MAX = 20;
 			final int err_len = (width + 2) * DJ;
@@ -349,13 +350,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
 				for (short j = 0; j < width; j++) {
 					int c = pixels[pixelIndex];
-					r_pix = clamp[((row0[cursor0] + 0x1008) >> 4) + Color.red(c)];
-					g_pix = clamp[((row0[cursor0 + 1] + 0x1008) >> 4) + Color.green(c)];
-					b_pix = clamp[((row0[cursor0 + 2] + 0x1008) >> 4) + Color.blue(c)];
-					a_pix = clamp[((row0[cursor0 + 3] + 0x1008) >> 4) + Color.alpha(c)];
+					int[] ditherPixel = calcDitherPixel(c, clamp, row0, cursor0, hasSemiTransparency);
+					int r_pix = ditherPixel[0];
+					int g_pix = ditherPixel[1];
+					int b_pix = ditherPixel[2];
+					int a_pix = ditherPixel[3];
 
 					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-					int offset = getColorIndex(c1, hasSemiTransparency, m_transparentPixelIndex);
+					int offset = getColorIndex(c1, hasSemiTransparency);
 					if (lookup[offset] == 0)
 						lookup[offset] = nearestColorIndex(palette, c1) + 1;
 					int c2 = qPixels[pixelIndex] = palette[lookup[offset] - 1];
