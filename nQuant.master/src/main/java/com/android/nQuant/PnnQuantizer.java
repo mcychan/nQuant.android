@@ -435,10 +435,9 @@ public class PnnQuantizer {
             hasSemiTransparency = false;
 		}
 
-		boolean quan_sqrt = nMaxColors > BYTE_MAX;
 		Integer[] palette = new Integer[nMaxColors];
 		if (nMaxColors > 2)
-			palette = pnnquan(cPixels, nMaxColors, quan_sqrt);
+			palette = pnnquan(cPixels, nMaxColors, true);
 		else {
 			if (hasSemiTransparency) {
 				palette[0] = Color.argb(0, 0, 0, 0);

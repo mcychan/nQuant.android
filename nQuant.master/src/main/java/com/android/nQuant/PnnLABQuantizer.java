@@ -16,6 +16,7 @@ import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
 	protected double PR = .2126, PG = .7152, PB = .0722;
+	protected double ratio = 1.0;
 	private Map<Integer, Lab> pixelMap = new HashMap<>();
 
 	public PnnLABQuantizer(String fname) throws IOException {
@@ -48,6 +49,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		Lab lab1 = new Lab();
 		lab1.alpha = bin1.ac; lab1.L = bin1.Lc; lab1.A = bin1.Ac; lab1.B = bin1.Bc;
+		boolean crossover = Math.random() < ratio;
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
 			double n2 = bins[i].cnt;
 			double nerr2 = (n1 * n2) / (n1 + n2);
@@ -60,7 +62,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (nerr >= err)
 				continue;
 
-			if (nMaxColors > 32) {
+			if (crossover) {
 				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 				nerr += nerr2 * sqr(deltaL_prime_div_k_L_S_L);
 				if (nerr > err)
@@ -102,7 +104,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		bin1.nn = nn;
 	}
 
-	private Integer[] pnnquan(final int[] pixels, int nMaxColors)
+	private Integer[] pnnquan(final int[] pixels, int nMaxColors, boolean quan_sqrt)
 	{
 		Pnnbin[] bins = new Pnnbin[65536];
 		int[] heap = new int[65537];
@@ -136,6 +138,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			bins[i].Lc *= d;
 			bins[i].Ac *= d;
 			bins[i].Bc *= d;
+
+			if (quan_sqrt)
+				bins[i].cnt = (int) Math.sqrt(bins[i].cnt);
 			bins[maxbins++] = bins[i];
 		}
 
@@ -147,6 +152,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		//	bins[0].bk = bins[i].fw = 0;
 
         int h, l, l2;
+		ratio = 0.003125 * nMaxColors;
 		/* Initialize nearest neighbors and build heap of them */
 		for (int i = 0; i < maxbins; i++) {
 			find_nn(bins, i, nMaxColors);
@@ -468,8 +474,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (hasSemiTransparency)
 			PR = PG = PB = 1.0;
 		Integer[] palette = new Integer[nMaxColors];
+		boolean quan_sqrt = Math.random() < nMaxColors / 64.0;
 		if (nMaxColors > 2)
-			palette = pnnquan(cPixels, nMaxColors);
+			palette = pnnquan(cPixels, nMaxColors, quan_sqrt);
 		else {
 			if (hasSemiTransparency) {
 				palette[0] = Color.argb(0, 0, 0, 0);
