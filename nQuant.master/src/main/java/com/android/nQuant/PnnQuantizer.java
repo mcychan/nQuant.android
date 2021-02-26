@@ -211,8 +211,8 @@ public class PnnQuantizer {
 		Integer[] palette = new Integer[nMaxColors];
 		short k = 0;
 		for (i = 0;; ++k) {
-			int alpha = (int) Math.rint(bins[i].ac);
-			palette[k] = Color.argb(alpha, (int) Math.rint(bins[i].rc), (int) Math.rint(bins[i].gc), (int) Math.rint(bins[i].bc));
+			int alpha = (int) bins[i].ac;
+			palette[k] = Color.argb(alpha, (int) bins[i].rc, (int) bins[i].gc, (int) bins[i].bc);
 			if (m_transparentPixelIndex >= 0 && m_transparentColor.equals(palette[k])) {
 				Integer temp = palette[0]; palette[0] = palette[k]; palette[k] = temp;
 			}
@@ -331,8 +331,8 @@ public class PnnQuantizer {
 			final int BLOCK_SIZE = 256;
 			final int DITHER_MAX = 20;
 			final int err_len = (width + 2) * DJ;
-			int[] clamp = new int[DJ * 256];
-			int[] limtb = new int[512];
+			int[] clamp = new int[DJ * BLOCK_SIZE];
+			int[] limtb = new int[2 * BLOCK_SIZE];
 
 			for (short i = 0; i < BLOCK_SIZE; ++i) {
 				clamp[i] = 0;
@@ -356,20 +356,16 @@ public class PnnQuantizer {
 
 				int cursor0 = DJ, cursor1 = width * DJ;
 				row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
-				for (short j = 0; j < width; ++j) {
+				for (int j = 0; j < width; ++j) {
 					int c = pixels[pixelIndex];
-					int[] ditherPixel = calcDitherPixel(c, clamp, row0, cursor0, hasSemiTransparency);
+					int[] ditherPixel = calcDitherPixel(c, clamp, row0, cursor0, noBias);
 					int r_pix = ditherPixel[0];
 					int g_pix = ditherPixel[1];
 					int b_pix = ditherPixel[2];
 					int a_pix = ditherPixel[3];
 
 					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-					qPixels[pixelIndex] = nearestColorIndex(palette, c1);
-					
-					int c2 = palette[qPixels[pixelIndex]];
-					if(nMaxColors > 256)
-						qPixels[pixelIndex] = getColorIndex(c2);
+					int c2 = qPixels[pixelIndex] = palette[nearestColorIndex(palette, c1)];
 
 					r_pix = limtb[r_pix - Color.red(c2) + BLOCK_SIZE];
 					g_pix = limtb[g_pix - Color.green(c2) + BLOCK_SIZE];
@@ -427,7 +423,7 @@ public class PnnQuantizer {
 
 	public Bitmap convert(int nMaxColors, boolean dither) {
 		final int[] cPixels = new int[pixels.length];
-		for (int i =0; i<cPixels.length; ++i) {
+		for (int i = 0; i < cPixels.length; ++i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
 			int r   = (pixel >> 16) & 0xff;
