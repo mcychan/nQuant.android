@@ -1,16 +1,12 @@
 package com.android.nQuant;
 
-import android.graphics.Bitmap;
 import android.graphics.Color;
 
 import com.android.nQuant.CIELABConvertor.Lab;
 import com.android.nQuant.CIELABConvertor.MutableDouble;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -107,7 +103,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, boolean quan_sqrt)
 	{
 		Pnnbin[] bins = new Pnnbin[65536];
-		int[] heap = new int[65537];
 
 		/* Build histogram */
 		for (final int pixel : pixels) {
@@ -145,27 +140,27 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if ((proportional < .022 || proportional > .5) && nMaxColors < 64)
 			quan_sqrt = false;
 		
-		int i = 0;
-		for (; i < maxbins - 1; i++) {
-			bins[i].fw = (i + 1);
+		if (quan_sqrt)
+			bins[0].cnt = (int) Math.sqrt(bins[0].cnt);
+		for (int i = 0; i < maxbins - 1; ++i) {
+			bins[i].fw = i + 1;
 			bins[i + 1].bk = i;
 			
 			if (quan_sqrt)
-				bins[i].cnt = (int) Math.sqrt(bins[i].cnt);
+				bins[i + 1].cnt = (int) Math.sqrt(bins[i + 1].cnt);
 		}
-		if (quan_sqrt)
-			bins[i].cnt = (int) Math.sqrt(bins[i].cnt);
 
         int h, l, l2;
 		if(quan_sqrt && nMaxColors < 64)
-			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.1) / maxbins);
+			ratio = Math.min(1.0, proportional + Math.pow(nMaxColors, 2.39) / pixelMap.size());
 		else if(quan_sqrt)
 			ratio = Math.min(1.0, Math.pow(nMaxColors, 1.05) / pixelMap.size());			
 		else
-			ratio = .55;
+			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.31) / maxbins);
 		
 		/* Initialize nearest neighbors and build heap of them */
-		for (i = 0; i < maxbins; ++i) {
+		int[] heap = new int[65537];
+		for (int i = 0; i < maxbins; ++i) {
 			find_nn(bins, i, nMaxColors);
 			/* Push slot on heap */
 			float err = bins[i].err;
@@ -180,7 +175,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		/* Merge bins which increase error the least */
 		int extbins = maxbins - nMaxColors;
-		for (i = 0; i < extbins; ) {
+		for (int i = 0; i < extbins; ) {
             Pnnbin tb = null;
             /* Use heap to find which bins to merge */
 			for (;;) {
@@ -229,7 +224,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		/* Fill palette */
 		Integer[] palette = new Integer[nMaxColors];
 		short k = 0;
-		for (i = 0;; ++k) {
+		for (int i = 0;; ++k) {
 			Lab lab1 = new Lab();
 			lab1.alpha = (int) bins[i].ac;
 			lab1.L = bins[i].Lc; lab1.A = bins[i].Ac; lab1.B = bins[i].Bc;
