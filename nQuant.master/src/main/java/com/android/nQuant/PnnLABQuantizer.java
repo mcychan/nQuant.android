@@ -53,8 +53,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double alphaDiff = hasSemiTransparency ? Math.abs(lab2.alpha - lab1.alpha) : 0;
-			double nerr = nerr2 * sqr(alphaDiff) * alphaDiff / 3.0;
+			double nerr = nerr2 * sqr(lab2.alpha - lab1.alpha) / Math.exp(1.0);
 			if (nerr >= err)
 				continue;
 
@@ -254,11 +253,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			int c2 = palette[i];
 			Lab lab2 = getLab(c2);
 
-			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
+			double curdist = sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.0);
 			if (curdist > mindist)
 				continue;
 
-			if (palette.length > 32) {
+			if (palette.length > 32 || hasSemiTransparency) {
 				curdist += PR * sqr(Color.red(c2) - Color.red(c));
 				if (curdist > mindist)
 					continue;
