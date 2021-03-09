@@ -53,7 +53,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double nerr = nerr2 * sqr(lab2.alpha - lab1.alpha) / Math.exp(1.0);
+			double nerr = nerr2 * sqr(lab2.alpha - lab1.alpha) / Math.exp(1.5);
 			if (nerr >= err)
 				continue;
 
@@ -101,6 +101,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, boolean quan_sqrt)
 	{
+		if(hasSemiTransparency)
+			PR = PG = PB = 1.0;
+		
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
@@ -253,7 +256,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			int c2 = palette[i];
 			Lab lab2 = getLab(c2);
 
-			double curdist = sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.0);
+			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
