@@ -162,7 +162,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.31) / maxbins);
 		
 		/* Initialize nearest neighbors and build heap of them */
-		int[] heap = new int[65537];
+		int[] heap = new int[bins.length + 1];
 		for (int i = 0; i < maxbins; ++i) {
 			find_nn(bins, i, nMaxColors);
 			/* Push slot on heap */
