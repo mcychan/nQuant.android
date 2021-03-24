@@ -327,8 +327,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				int c2 = palette[k];
 				Lab lab2 = getLab(c2);
 
-				closest[4] = (short) (sqr(lab2.alpha - lab1.alpha) + CIELABConvertor.CIEDE2000(lab2, lab1));
-				//closest[4] = Math.abs(lab2.alpha - lab1.alpha) + Math.abs(lab2.L - lab1.L) + Math.abs(lab2.A - lab1.A) + Math.abs(lab2.B - lab1.B);
+				closest[4] = (short) (sqr(lab2.alpha - lab1.alpha) + sqr(lab2.L - lab1.L) + sqr(lab2.B - lab1.B));
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
@@ -355,6 +354,109 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		closestMap.put(c, closest);
 		return k;
-	}	
+	}
+
+	@Override
+	protected int[] quantize_image(final int[] pixels, final Integer[] palette, final boolean dither)
+	{
+		int[] qPixels = new int[pixels.length];
+		int nMaxColors = palette.length;
+
+		int pixelIndex = 0;
+		if (dither) {
+			final int DJ = 4;
+			final int BLOCK_SIZE = 256;
+			final int DITHER_MAX = 16;
+			final int err_len = (width + 2) * DJ;
+			int[] clamp = new int[DJ * BLOCK_SIZE];
+			int[] limtb = new int[2 * BLOCK_SIZE];
+
+			for (short i = 0; i < BLOCK_SIZE; ++i) {
+				clamp[i] = 0;
+				clamp[i + BLOCK_SIZE] = i;
+				clamp[i + BLOCK_SIZE * 2] = BYTE_MAX;
+				clamp[i + BLOCK_SIZE * 3] = BYTE_MAX;
+
+				limtb[i] = -DITHER_MAX;
+				limtb[i + BLOCK_SIZE] = DITHER_MAX;
+			}
+			for (short i = -DITHER_MAX; i <= DITHER_MAX; ++i)
+				limtb[i + BLOCK_SIZE] = i;
+
+			boolean noBias = hasSemiTransparency || nMaxColors < 64;
+			int dir = 1;
+			int[] row0 = new int[err_len];
+			int[] row1 = new int[err_len];
+			for (int i = 0; i < height; ++i) {
+				if (dir < 0)
+					pixelIndex += width - 1;
+
+				int cursor0 = DJ, cursor1 = width * DJ;
+				row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
+				for (int j = 0; j < width; ++j) {
+					int c = pixels[pixelIndex];
+					int[] ditherPixel = calcDitherPixel(c, clamp, row0, cursor0, noBias);
+					int r_pix = ditherPixel[0];
+					int g_pix = ditherPixel[1];
+					int b_pix = ditherPixel[2];
+					int a_pix = ditherPixel[3];
+
+					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
+					short qPixel = noBias ? closestColorIndex(palette, c1) : nearestColorIndex(palette, c1);
+					int c2 = qPixels[pixelIndex] = palette[qPixel];
+
+					r_pix = limtb[r_pix - Color.red(c2) + BLOCK_SIZE];
+					g_pix = limtb[g_pix - Color.green(c2) + BLOCK_SIZE];
+					b_pix = limtb[b_pix - Color.blue(c2) + BLOCK_SIZE];
+					a_pix = limtb[a_pix - Color.alpha(c2) + BLOCK_SIZE];
+
+					int k = r_pix * 2;
+					row1[cursor1 - DJ] = r_pix;
+					row1[cursor1 + DJ] += (r_pix += k);
+					row1[cursor1] += (r_pix += k);
+					row0[cursor0 + DJ] += (r_pix += k);
+
+					k = g_pix * 2;
+					row1[cursor1 + 1 - DJ] = g_pix;
+					row1[cursor1 + 1 + DJ] += (g_pix += k);
+					row1[cursor1 + 1] += (g_pix += k);
+					row0[cursor0 + 1 + DJ] += (g_pix += k);
+
+					k = b_pix * 2;
+					row1[cursor1 + 2 - DJ] = b_pix;
+					row1[cursor1 + 2 + DJ] += (b_pix += k);
+					row1[cursor1 + 2] += (b_pix += k);
+					row0[cursor0 + 2 + DJ] += (b_pix += k);
+
+					k = a_pix * 2;
+					row1[cursor1 + 3 - DJ] = a_pix;
+					row1[cursor1 + 3 + DJ] += (a_pix += k);
+					row1[cursor1 + 3] += (a_pix += k);
+					row0[cursor0 + 3 + DJ] += (a_pix += k);
+
+					cursor0 += DJ;
+					cursor1 -= DJ;
+					pixelIndex += dir;
+				}
+				if ((i % 2) == 1)
+					pixelIndex += width + 1;
+
+				dir *= -1;
+				int[] temp = row0; row0 = row1; row1 = temp;
+			}
+			return qPixels;
+		}
+
+		if(hasSemiTransparency || nMaxColors < 256) {
+			for (int i = 0; i < qPixels.length; ++i)
+				qPixels[i] = palette[nearestColorIndex(palette, pixels[i])];
+		}
+		else {
+			for (int i = 0; i < qPixels.length; ++i)
+				qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
+		}
+
+		return qPixels;
+	}
 
 }

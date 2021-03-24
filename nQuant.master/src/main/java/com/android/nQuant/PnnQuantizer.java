@@ -326,7 +326,7 @@ public class PnnQuantizer {
 		return ditherPixel;
 	}
 
-	protected final int[] quantize_image(final int[] pixels, final Integer[] palette, final boolean dither)
+	protected int[] quantize_image(final int[] pixels, final Integer[] palette, final boolean dither)
 	{
 		int[] qPixels = new int[pixels.length];
 		int nMaxColors = palette.length;
