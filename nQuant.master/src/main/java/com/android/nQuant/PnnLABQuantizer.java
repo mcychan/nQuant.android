@@ -108,10 +108,16 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
-		for (final int pixel : pixels) {
+		for (int pixel : pixels) {
 			// !!! Can throw gamma correction in here, but what to do about perceptual
 			// !!! nonuniformity then?
 			int index = getColorIndex(pixel, hasSemiTransparency);
+			int a = Color.alpha(pixel);
+			if(a <= this.alphaThreshold) {
+				pixel = m_transparentColor;
+				index = getColorIndex(pixel, hasSemiTransparency);
+			}
+
 			Lab lab1 = getLab(pixel);
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
@@ -140,7 +146,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		double proportional = sqr(nMaxColors) / maxbins;
-		if(nMaxColors < 16)
+		if(nMaxColors < 16 || hasSemiTransparency)
 			quan_rt = -1;
 		else if ((proportional < .022 || proportional > .5) && nMaxColors < 64)
 			quan_rt = 0;
@@ -162,8 +168,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else
 			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.31) / maxbins);
 
-		if (quan_rt < 0)
+		if (quan_rt < 0) {
 			ratio += 0.5;
+			ratio = Math.min(1.0, ratio);
+		}
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
@@ -256,6 +264,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			return got;
 		
 		short k = 0;
+		if (Color.alpha(c) <= alphaThreshold)
+			return k;
+
 		double mindist = SHORT_MAX;
 		Lab lab1 = getLab(c);
 		for (short i=0; i<palette.length; ++i) {
