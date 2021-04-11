@@ -1,5 +1,6 @@
 package com.android.nQuant;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
 
 import com.android.nQuant.CIELABConvertor.Lab;
@@ -70,7 +71,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			if (nerr > err)
 				continue;
-			
+
 			double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 			nerr += ratio * nerr2 * sqr(deltaL_prime_div_k_L_S_L);
 			if (nerr > err)
@@ -104,7 +105,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		if(hasSemiTransparency)
 			PR = PG = PB = 1.0;
-		
+
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
@@ -131,12 +132,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (bins[i] == null)
 				continue;
 
-			double d = 1.0 / (float)bins[i].cnt;
+			float d = 1f / (float)bins[i].cnt;
 			bins[i].ac *= d;
 			bins[i].Lc *= d;
 			bins[i].Ac *= d;
 			bins[i].Bc *= d;
-			
+
 			bins[maxbins++] = bins[i];
 		}
 
@@ -145,13 +146,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			quan_rt = -1;
 		else if ((proportional < .022 || proportional > .5) && nMaxColors < 64)
 			quan_rt = 0;
-		
+
 		if (quan_rt > 0)
 			bins[0].cnt = (int) Math.sqrt(bins[0].cnt);
 		for (int i = 0; i < maxbins - 1; ++i) {
 			bins[i].fw = i + 1;
 			bins[i + 1].bk = i;
-			
+
 			if (quan_rt > 0)
 				bins[i + 1].cnt = (int) Math.sqrt(bins[i + 1].cnt);
 		}
@@ -159,7 +160,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if(quan_rt != 0 && nMaxColors < 64)
 			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.845) / pixelMap.size());
 		else if(quan_rt > 0)
-			ratio = Math.min(1.0, Math.pow(nMaxColors, 1.05) / pixelMap.size());			
+			ratio = Math.min(1.0, Math.pow(nMaxColors, 1.05) / pixelMap.size());
 		else
 			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.31) / maxbins);
 
@@ -187,10 +188,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		/* Merge bins which increase error the least */
 		int extbins = maxbins - nMaxColors;
 		for (int i = 0; i < extbins; ) {
-            Pnnbin tb = null;
-            /* Use heap to find which bins to merge */
+			Pnnbin tb = null;
+			/* Use heap to find which bins to merge */
 			for (;;) {
-			    int b1 = heap[1];
+				int b1 = heap[1];
 				tb = bins[b1]; /* One with least error */
 				/* Is stored error up to date? */
 				if ((tb.tm >= tb.mtm) && (bins[tb.nn].mtm <= tb.tm))
@@ -257,7 +258,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Short got = nearestMap.get(c);
 		if (got != null)
 			return got;
-		
+
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			return k;
@@ -318,22 +319,25 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		nearestMap.put(c, k);
 		return k;
 	}
-	
+
 	@Override
 	protected short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
-		short[] closest = new short[5];
-		short[] got = closestMap.get(c);
-		if (got == null) {
+		short[] closest = closestMap.get(c);
+		if (closest == null) {
+			closest = new short[5];
 			closest[2] = closest[3] = SHORT_MAX;
 			Lab lab1 = getLab(c);
 
-			for (; k < palette.length; k++) {
-				int c2 = palette[k];
-				Lab lab2 = getLab(c2);
+			for (; k < palette.length; ++k) {
+				Integer c2 = palette[k];
+				if(c2 == null)
+					break;
 
-				closest[4] = (short) (sqr(lab2.alpha - lab1.alpha) + sqr(lab2.L - lab1.L) + sqr(lab2.B - lab1.B));
+				Lab lab2 = getLab(c2);
+				closest[4] = (short) (sqr(lab2.L - lab1.L) + sqr(lab2.A - lab1.A) + sqr(lab2.B - lab1.B));
+
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
@@ -349,8 +353,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (closest[3] == SHORT_MAX)
 				closest[2] = 0;
 		}
-		else
-			closest = got;
 
 		Random rand = new Random();
 		if (closest[2] == 0 || (rand.nextInt(SHORT_MAX) % (closest[3] + closest[2])) <= closest[3])
@@ -453,7 +455,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			return qPixels;
 		}
 
-		if(hasSemiTransparency || nMaxColors < 256) {
+		if(hasSemiTransparency || nMaxColors < 64) {
 			for (int i = 0; i < qPixels.length; ++i)
 				qPixels[i] = palette[nearestColorIndex(palette, pixels[i])];
 		}
