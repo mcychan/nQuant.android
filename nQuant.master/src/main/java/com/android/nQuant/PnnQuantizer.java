@@ -276,13 +276,15 @@ public class PnnQuantizer {
 	protected short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
-		short[] closest = new short[5];
-		short[] got = closestMap.get(c);
-		if (got == null) {
+		short[] closest = closestMap.get(c);
+		if (closest == null) {
+			closest = new short[5];
 			closest[2] = closest[3] = SHORT_MAX;
 
 			for (; k < palette.length; k++) {
-				int c2 = palette[k];
+				Integer c2 = palette[k];
+				if(c2 == null)
+					break;
 
 				closest[4] = (short) (Math.abs(Color.alpha(c) - Color.alpha(c2)) + Math.abs(Color.red(c) - Color.red(c2)) + Math.abs(Color.green(c) - Color.green(c2)) + Math.abs(Color.blue(c) - Color.blue(c2)));
 				if (closest[4] < closest[2]) {
@@ -300,8 +302,6 @@ public class PnnQuantizer {
 			if (closest[3] == SHORT_MAX)
 				closest[2] = 0;
 		}
-		else
-			closest = got;
 
 		Random rand = new Random();
 		if (closest[2] == 0 || (rand.nextInt(SHORT_MAX) % (closest[3] + closest[2])) <= closest[3])
