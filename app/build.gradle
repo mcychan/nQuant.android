@@ -29,6 +29,5 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation(fileTree(Pair("dir", "libs"), Pair("include", listOf("*.jar"))))
     implementation project(':nQuant.master')
 }
