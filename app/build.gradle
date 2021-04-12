@@ -21,7 +21,9 @@ android {
         }
     }
 	lintOptions {
-		checkReleaseBuilds false
+		lintGlobalTask {
+			allInputs "src/main/java"
+		}
         abortOnError false
     }
     buildToolsVersion '30.0.3'
