@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    defaultConfig {
+    defaultConfig {		
         applicationId "nquant.android"
         minSdkVersion 27
         targetSdkVersion 28
@@ -22,6 +22,10 @@ android {
         // if true, stop the gradle build if errors are found
         abortOnError false
     }
+}
+
+task {
+	allInputs 'src/main/java'
 }
 
 dependencies {
