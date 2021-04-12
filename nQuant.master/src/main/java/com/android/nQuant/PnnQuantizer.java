@@ -376,7 +376,8 @@ public class PnnQuantizer {
 					int a_pix = ditherPixel[3];
 
 					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-					int c2 = qPixels[pixelIndex] = palette[nearestColorIndex(palette, c1)];
+					short qIndex = (Color.alpha(c) == 0 && a_pix > 0) ? 0 : nearestColorIndex(palette, c1);
+					int c2 = qPixels[pixelIndex] = palette[qIndex];
 
 					r_pix = limtb[r_pix - Color.red(c2) + BLOCK_SIZE];
 					g_pix = limtb[g_pix - Color.green(c2) + BLOCK_SIZE];
