@@ -1,6 +1,5 @@
 package com.android.nQuant;
 
-import android.graphics.Bitmap;
 import android.graphics.Color;
 
 import com.android.nQuant.CIELABConvertor.Lab;

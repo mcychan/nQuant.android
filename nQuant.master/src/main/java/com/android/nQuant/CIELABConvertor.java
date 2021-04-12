@@ -1,7 +1,7 @@
 package com.android.nQuant;
 
 import android.graphics.Color;
-import android.support.v4.graphics.ColorUtils;
+import androidx.core.graphics.ColorUtils;
 
 import java.math.BigDecimal;
 
