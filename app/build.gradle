@@ -21,6 +21,7 @@ android {
         }
     }
 	lintOptions {
+		checkReleaseBuilds false
         abortOnError false
     }
     buildToolsVersion '30.0.3'
