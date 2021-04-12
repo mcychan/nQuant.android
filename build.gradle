@@ -18,8 +18,10 @@ buildscript {
 
 allprojects {
     gradle.projectsEvaluated {
+		tasks.withType(Jar) {
+			allInputs('src/main/java')
+		}
         tasks.withType(JavaCompile) {
-			inputs.dir('src/main/java')
 			options.encoding = 'UTF-8'
 			sourceCompatibility = '1.8'
 			targetCompatibility = '1.8'
