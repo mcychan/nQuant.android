@@ -1,1 +1,1 @@
-include 'libs:androidx.appcompat:appcompat', ':app', ':nQuant.master'
+include ':app', ':nQuant.master'
