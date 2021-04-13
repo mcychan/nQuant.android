@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin'
 
 android {
     compileSdkVersion 28
@@ -27,6 +28,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 	
-    // implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation project(':nQuant.master')
 }
