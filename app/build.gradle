@@ -17,9 +17,6 @@ android {
         }
     }
 	lintOptions {
-		// set to true to turn off analysis progress reporting by lint
-        quiet true
-        // if true, stop the gradle build if errors are found
         abortOnError false
     }
 }
@@ -27,6 +24,7 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 	
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+	implementation 'androidx.vectordrawable:vectordrawable:1.1.0"'
     implementation project(':nQuant.master')
 }
