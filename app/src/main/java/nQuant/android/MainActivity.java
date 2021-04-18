@@ -122,15 +122,21 @@ public class MainActivity extends Activity {
                         @Override
                         public void run() {
                             try {
-                                PnnQuantizer pnnQuantizer = new PnnQuantizer(filePath);
+                                PnnQuantizer pnnQuantizer = new PnnLABQuantizer(filePath);
                                 final Bitmap result = pnnQuantizer.convert(256, true);
 
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
                                         image.setImageBitmap(result);
-                                        image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
-                                        image.getLayoutParams().height = (image.getLayoutParams().width * result.getHeight()) / result.getWidth();
+                                        if(getResources().getDisplayMetrics().widthPixels < getResources().getDisplayMetrics().heightPixels) {
+                                            image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
+                                            image.getLayoutParams().height = result.getHeight() * (image.getLayoutParams().width / result.getWidth());
+                                        }
+                                        else {
+                                            image.getLayoutParams().height = getResources().getDisplayMetrics().heightPixels;
+                                            image.getLayoutParams().width = result.getWidth() * (image.getLayoutParams().height / result.getHeight());
+                                        }
                                         image.setScaleType(ImageView.ScaleType.FIT_XY);
                                         button.setText("Quit");
                                         button.setEnabled(true);
