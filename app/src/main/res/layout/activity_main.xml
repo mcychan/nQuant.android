@@ -4,19 +4,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/display"
 	android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     tools:context="nQuant.android.MainActivity">
 
     <ImageView
         android:id="@+id/imageView1"
+        android:adjustViewBounds="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:src="@drawable/sample" />
 
     <Button
         android:id="@+id/btnChangeImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:text="Convert to 256 colors" />
 </LinearLayout>
