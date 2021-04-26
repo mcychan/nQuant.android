@@ -6,14 +6,20 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.android.nQuant.PnnLABQuantizer;
 import com.android.nQuant.PnnQuantizer;
@@ -88,14 +94,50 @@ public class MainActivity extends Activity {
         addListenerOnButton();
     }
 
-    public ProgressBar createProgressBar() {
-        LinearLayout layout = findViewById(R.id.display);
-        ProgressBar progressBar = progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleLarge);
-        layout.addView(progressBar);
+    public AlertDialog createProgressDialog() {
+        int llPadding = 30;
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.HORIZONTAL);
+        ll.setPadding(llPadding, llPadding, llPadding, llPadding);
+        ll.setGravity(Gravity.CENTER);
+        LinearLayout.LayoutParams llParam = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT);
+        llParam.gravity = Gravity.CENTER;
+        ll.setLayoutParams(llParam);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-        progressBar.setVisibility(View.VISIBLE);
-        return progressBar;
+        ProgressBar progressBar = new ProgressBar(this);
+        progressBar.setIndeterminate(true);
+        progressBar.setPadding(0, 0, llPadding, 0);
+        progressBar.setLayoutParams(llParam);
+
+        llParam = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        llParam.gravity = Gravity.CENTER;
+        llParam.leftMargin = 5;
+        TextView tvText = new TextView(this);
+        tvText.setText("Converting ...");
+        tvText.setTextSize(20);
+        tvText.setLayoutParams(llParam);
+
+        ll.addView(progressBar);
+        ll.addView(tvText);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setView(ll);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        Window window = dialog.getWindow();
+        if (window != null) {
+            WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+            layoutParams.copyFrom(dialog.getWindow().getAttributes());
+            layoutParams.width = LinearLayout.LayoutParams.WRAP_CONTENT;
+            layoutParams.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+            dialog.getWindow().setAttributes(layoutParams);
+        }
+        return dialog;
     }
 
     public void addListenerOnButton() {
@@ -114,7 +156,7 @@ public class MainActivity extends Activity {
                 try {
                     button.setEnabled(false);
 
-                    final ProgressBar progressBar = createProgressBar();
+                    final AlertDialog dialog = createProgressDialog();
                     final Handler handler = new Handler(getMainLooper());
 
                     final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -141,8 +183,8 @@ public class MainActivity extends Activity {
                                         button.setText("Quit");
                                         button.setEnabled(true);
 
-                                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                                        progressBar.setVisibility(View.GONE);
+                                        if(dialog.isShowing())
+                                            dialog.dismiss();
                                     }
                                 });
                             } catch (IOException e) {
