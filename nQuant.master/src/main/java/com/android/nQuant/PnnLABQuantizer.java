@@ -392,7 +392,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				limtb[i + BLOCK_SIZE] = DITHER_MAX;
 			}
 			for (short i = -DITHER_MAX; i <= DITHER_MAX; ++i)
-				limtb[i + BLOCK_SIZE] = i;
+				limtb[i + BLOCK_SIZE] = i % 4 == 3 ? 0 : i;
 
 			boolean noBias = hasSemiTransparency || nMaxColors < 64;
 			int dir = 1;

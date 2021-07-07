@@ -133,7 +133,7 @@ public class PnnQuantizer {
 
 		if(nMaxColors < 16)
 			quan_rt = -1;
-		if (sqr(nMaxColors) / maxbins < .022)
+		if (sqr(nMaxColors) / maxbins < .03)
 			quan_rt = 0;
 
 		if (quan_rt > 0)
@@ -355,7 +355,7 @@ public class PnnQuantizer {
 				limtb[i + BLOCK_SIZE] = DITHER_MAX;
 			}
 			for (short i = -DITHER_MAX; i <= DITHER_MAX; ++i)
-				limtb[i + BLOCK_SIZE] = i;
+				limtb[i + BLOCK_SIZE] = i % 4 == 3 ? 0 : i;
 
 			boolean noBias = hasSemiTransparency || nMaxColors < 64;
 			int dir = 1;
