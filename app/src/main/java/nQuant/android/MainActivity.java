@@ -67,27 +67,23 @@ public class MainActivity extends Activity {
                 output.write(buffer, 0, size);
             }
             asset.close();
-            output.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         image = findViewById(R.id.imageView1);
         image.setClickable(true);
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                if("Quit".equals(button.getText()))
-                    return;
+        image.setOnClickListener(arg0 -> {
+            if("Quit".equals(button.getText()))
+                return;
 
-                try {
-                    Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    intent.setType("image/*");
-                    startActivityForResult(Intent.createChooser(intent, "Please select Image"), IMPORT_PICTURE);
-                } catch (android.content.ActivityNotFoundException ex) {
-                    // Potentially direct the user to the Market with a Dialog
-                    Toast.makeText(getApplicationContext(), "Please install a File Manager.", Toast.LENGTH_SHORT).show();
-                }
+            try {
+                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.setType("image/*");
+                startActivityForResult(Intent.createChooser(intent, "Please select Image"), IMPORT_PICTURE);
+            } catch (android.content.ActivityNotFoundException ex) {
+                // Potentially direct the user to the Market with a Dialog
+                Toast.makeText(getApplicationContext(), "Please install a File Manager.", Toast.LENGTH_SHORT).show();
             }
         });
         addListenerOnButton();
@@ -142,54 +138,48 @@ public class MainActivity extends Activity {
     public void addListenerOnButton() {
         button = findViewById(R.id.btnChangeImage);
         button.setTransformationMethod(null);
-        button.setOnClickListener(new OnClickListener() {
+        button.setOnClickListener(arg0 -> {
+            if("Quit".equals(button.getText())) {
+                MainActivity.this.finish();
+                System.exit(0);
+                return;
+            }
 
-            @Override
-            public void onClick(View arg0) {
-                if("Quit".equals(button.getText())) {
-                    MainActivity.this.finish();
-                    System.exit(0);
-                    return;
-                }
+            try {
+                button.setEnabled(false);
 
-                try {
-                    button.setEnabled(false);
+                final AlertDialog dialog = createProgressDialog();
+                final Handler handler = new Handler(getMainLooper());
 
-                    final AlertDialog dialog = createProgressDialog();
-                    final Handler handler = new Handler(getMainLooper());
+                final ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(() -> {
+                    try {
+                        PnnQuantizer pnnQuantizer = new PnnQuantizer(filePath);
+                        final Bitmap result = pnnQuantizer.convert(256, true);
 
-                    final ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(() -> {
-                        try {
-                            PnnQuantizer pnnQuantizer = new PnnQuantizer(filePath);
-                            final Bitmap result = pnnQuantizer.convert(256, true);
+                        handler.post(() -> {
+                            image.setImageBitmap(result);
+                            DisplayMetrics metrics = new DisplayMetrics();
+                            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                            if(metrics.widthPixels < metrics.heightPixels)
+                                image.getLayoutParams().height = result.getHeight() * (metrics.widthPixels / result.getWidth());
+                            else
+                                image.getLayoutParams().width = result.getWidth() * (metrics.heightPixels / result.getHeight());
 
-                            handler.post(() -> {
-                                image.setImageBitmap(result);
-                                DisplayMetrics metrics = new DisplayMetrics();
-                                getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                                if(metrics.widthPixels < metrics.heightPixels)
-                                    image.getLayoutParams().height = result.getHeight() * (metrics.widthPixels / result.getWidth());
-                                else
-                                    image.getLayoutParams().width = result.getWidth() * (metrics.heightPixels / result.getHeight());
+                            image.setScaleType(ImageView.ScaleType.FIT_XY);
+                            button.setText("Quit");
+                            button.setEnabled(true);
 
-                                image.setScaleType(ImageView.ScaleType.FIT_XY);
-                                button.setText("Quit");
-                                button.setEnabled(true);
-
-                                if(dialog.isShowing())
-                                    dialog.dismiss();
-                            });
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        } catch (Exception e) {
-                            throw e;
-                        }
-                    });
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    Toast.makeText(MainActivity.this, "Error! " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                            if(dialog.isShowing())
+                                dialog.dismiss();
+                        });
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            } catch (Throwable t) {
+                t.printStackTrace();
+                Toast.makeText(MainActivity.this, "Error! " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
 
