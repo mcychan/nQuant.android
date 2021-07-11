@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -59,9 +60,7 @@ public class MainActivity extends Activity {
 
         filePath = file.getAbsolutePath();
         InputStream asset = getResources().openRawResource(+R.drawable.sample);
-        FileOutputStream output = null;
-        try {
-            output = new FileOutputStream(file);
+         try(FileOutputStream output = new FileOutputStream(file)) {
             final byte[] buffer = new byte[1024];
             int size;
             while ((size = asset.read(buffer)) != -1) {
@@ -160,38 +159,31 @@ public class MainActivity extends Activity {
                     final Handler handler = new Handler(getMainLooper());
 
                     final ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                PnnQuantizer pnnQuantizer = new PnnLABQuantizer(filePath);
-                                final Bitmap result = pnnQuantizer.convert(256, true);
+                    executor.execute(() -> {
+                        try {
+                            PnnQuantizer pnnQuantizer = new PnnQuantizer(filePath);
+                            final Bitmap result = pnnQuantizer.convert(256, true);
 
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        image.setImageBitmap(result);
-                                        if(getResources().getDisplayMetrics().widthPixels < getResources().getDisplayMetrics().heightPixels) {
-                                            image.getLayoutParams().width = getResources().getDisplayMetrics().widthPixels;
-                                            image.getLayoutParams().height = result.getHeight() * (image.getLayoutParams().width / result.getWidth());
-                                        }
-                                        else {
-                                            image.getLayoutParams().height = getResources().getDisplayMetrics().heightPixels;
-                                            image.getLayoutParams().width = result.getWidth() * (image.getLayoutParams().height / result.getHeight());
-                                        }
-                                        image.setScaleType(ImageView.ScaleType.FIT_XY);
-                                        button.setText("Quit");
-                                        button.setEnabled(true);
+                            handler.post(() -> {
+                                image.setImageBitmap(result);
+                                DisplayMetrics metrics = new DisplayMetrics();
+                                getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                                if(metrics.widthPixels < metrics.heightPixels)
+                                    image.getLayoutParams().height = result.getHeight() * (metrics.widthPixels / result.getWidth());
+                                else
+                                    image.getLayoutParams().width = result.getWidth() * (metrics.heightPixels / result.getHeight());
 
-                                        if(dialog.isShowing())
-                                            dialog.dismiss();
-                                    }
-                                });
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            } catch (Exception e) {
-                                throw e;
-                            }
+                                image.setScaleType(ImageView.ScaleType.FIT_XY);
+                                button.setText("Quit");
+                                button.setEnabled(true);
+
+                                if(dialog.isShowing())
+                                    dialog.dismiss();
+                            });
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } catch (Exception e) {
+                            throw e;
                         }
                     });
                 } catch (Throwable t) {
