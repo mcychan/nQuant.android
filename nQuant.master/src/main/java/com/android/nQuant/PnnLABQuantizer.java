@@ -13,7 +13,7 @@ import java.util.Random;
 public class PnnLABQuantizer extends PnnQuantizer {
 	protected double PR = .299, PG = .587, PB = .114;
 	protected double ratio = 1.0;
-	private Map<Integer, Lab> pixelMap = new HashMap<>();
+	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
@@ -141,7 +141,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		double proportional = sqr(nMaxColors) / maxbins;
-		if(nMaxColors < 16 || (hasSemiTransparency && nMaxColors < 32))
+		if((m_transparentPixelIndex >= 0 || hasSemiTransparency) && nMaxColors < 32)
 			quan_rt = -1;
 		else if ((proportional < .018 || proportional > .5) && nMaxColors < 64)
 			quan_rt = 0;
@@ -165,7 +165,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else if(quan_rt > 0)
 			ratio = Math.min(1.0, Math.pow(nMaxColors, 1.05) / pixelMap.size());
 		else
-			ratio = Math.min(1.0, Math.pow(nMaxColors, 2.31) / maxbins);
+			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(4.732) / pixelMap.size());
 
 		if (quan_rt < 0) {
 			ratio += 0.5;
@@ -191,7 +191,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		/* Merge bins which increase error the least */
 		int extbins = maxbins - nMaxColors;
 		for (int i = 0; i < extbins; ) {
-			Pnnbin tb = null;
+			Pnnbin tb;
 			/* Use heap to find which bins to merge */
 			for (;;) {
 				int b1 = heap[1];
@@ -477,6 +477,43 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
 		}
 
+		return qPixels;
+	}
+
+	protected Ditherable getDitherFn() {
+		return new Ditherable() {
+			@Override
+			public int getColorIndex(int c) {
+				return PnnLABQuantizer.this.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+			}
+
+			@Override
+			public short nearestColorIndex(Integer[] palette, int c) {
+				boolean noBias = hasSemiTransparency || palette.length < 64;
+				if(noBias)
+					return PnnLABQuantizer.this.nearestColorIndex(palette, c);
+				return PnnLABQuantizer.this.closestColorIndex(palette, c);
+			}
+
+		};
+	}
+
+	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
+	{
+		int[] qPixels;
+		if (dither)
+			qPixels = quantize_image(cPixels, palette, true);
+		else {
+			if (nMaxColors < 64)
+				qPixels = quantize_image(cPixels, palette, false);
+			else
+				qPixels = HilbertCurve.dither(width, height, cPixels, palette, getDitherFn());
+			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(), qPixels, 1.0f);
+		}
+
+		closestMap.clear();
+		nearestMap.clear();
+		pixelMap.clear();
 		return qPixels;
 	}
 

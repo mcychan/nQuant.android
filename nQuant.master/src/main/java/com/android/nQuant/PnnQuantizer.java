@@ -9,10 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -23,8 +20,10 @@ public class PnnQuantizer {
 	protected boolean hasSemiTransparency = false;
 	protected int m_transparentPixelIndex = -1;
 	protected int width, height;
-	protected int pixels[] = null;
+	protected int[] pixels = null;
 	protected Integer m_transparentColor;
+
+	private double PR = .299, PG = .587, PB = .114;
 	protected Map<Integer, short[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
@@ -244,17 +243,17 @@ public class PnnQuantizer {
 			if (curdist > mindist)
 				continue;
 
-			double rdist = Math.abs(Color.red(c2) - Color.red(c));
+			double rdist = PR * Math.abs(Color.red(c2) - Color.red(c));
 			curdist += rdist;
 			if (curdist > mindist)
 				continue;
 
-			double gdist = Math.abs(Color.green(c2) - Color.green(c));
+			double gdist = PG * Math.abs(Color.green(c2) - Color.green(c));
 			curdist += gdist;
 			if (curdist > mindist)
 				continue;
 
-			double bdist = Math.abs(Color.blue(c2) - Color.blue(c));
+			double bdist = PB * Math.abs(Color.blue(c2) - Color.blue(c));
 			curdist += bdist;
 			if (curdist > mindist)
 				continue;
@@ -436,6 +435,14 @@ public class PnnQuantizer {
 		return qPixels;
 	}
 
+	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
+	{
+		int[] qPixels = quantize_image(cPixels, palette, dither);
+		closestMap.clear();
+		nearestMap.clear();
+		return qPixels;
+	}
+
 	public Bitmap convert(int nMaxColors, boolean dither) {
 		final int[] cPixels = new int[pixels.length];
 		for (int i = 0; i < cPixels.length; ++i) {
@@ -446,13 +453,17 @@ public class PnnQuantizer {
 			int b  = (pixel      ) & 0xff;
 			cPixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < BYTE_MAX) {
-				hasSemiTransparency = true;
 				if (alfa == 0) {
                     m_transparentPixelIndex = i;
 					m_transparentColor = cPixels[i];
 				}
+				else
+					hasSemiTransparency = true;
 			}
-		}		           
+		}
+
+		if (nMaxColors <= 32)
+			PR = PG = PB = 1;
 
 		Integer[] palette;
 		if (nMaxColors > 2)
@@ -471,7 +482,8 @@ public class PnnQuantizer {
 
 		if (nMaxColors > 256)
             dither = true;		
-		int[] qPixels = quantize_image(cPixels, palette, dither);
+		int[] qPixels = dither(cPixels, palette, nMaxColors, width, height, dither);
+
         if (m_transparentPixelIndex >= 0) {
             int k = qPixels[m_transparentPixelIndex];
             if (nMaxColors > 2)
@@ -480,8 +492,6 @@ public class PnnQuantizer {
                 int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
             }
         }
-		closestMap.clear();
-		nearestMap.clear();
 
         if (m_transparentPixelIndex >= 0)
             return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
