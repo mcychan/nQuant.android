@@ -498,6 +498,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		};
 	}
 
+	@Override
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels;
