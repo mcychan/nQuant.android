@@ -79,7 +79,7 @@ public class HilbertCurve {
 	        	int offset = ditherable.getColorIndex(c2);
 				if(lookup[offset] == 0)
 					lookup[offset] = (Color.alpha(pixel) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2) + 1;
-				qPixels[x + y * width] = (short) (lookup[offset] - 1);
+				qPixels[x + y * width] = lookup[offset] - 1;
 	        }
 	        else
 	        	qPixels[x + y * width] = ditherable.nearestColorIndex(palette, c2);

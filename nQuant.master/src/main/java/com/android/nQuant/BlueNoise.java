@@ -1,4 +1,9 @@
 package com.android.nQuant;
+/**
+ * A blue-noise-based dither does not diffuse error, and uses a tiling blue noise pattern,
+ * with a fine-grained checker board pattern
+ * and a roughly-white-noise pattern obtained by distorting the blue noise, but only applies these noisy pattern
+ * when there's error matching a color from the image to a color in the palette. */
 
 import android.graphics.Color;
 
@@ -169,12 +174,7 @@ public class BlueNoise {
 		-65, -32, 85, 7, -16, 80, -32, 10, 95, 50, 88, 123, -121, -12, -79, -42, -102, -53, 42, -75, 85, -107, 21, -82, -25, 
 		14, -9, -91, -55, 99, -111, -20, 31, 88, -3, 105, 53, -29, -90, -10, -70, 9, -57, 123, -99, 5			
 	};
-	
-	/**
-     * A blue-noise-based dither does not diffuse error, and uses a tiling blue noise pattern, 
-     * with a fine-grained checker board pattern
-     * and a roughly-white-noise pattern obtained by distorting the blue noise, but only applies these noisy pattern
-     * when there's error matching a color from the image to a color in the palette. */
+
 	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final int[] qPixels, final float weight)
     {	
 		final int[] lookup = new int[65536];
@@ -203,7 +203,7 @@ public class BlueNoise {
     	        	
     				if(lookup[offset] == 0)
     					lookup[offset] = (Color.alpha(pixel) == 0) ? 1 : ditherable.nearestColorIndex(palette, c1) + 1;
-    				qPixels[x + y * width] = (short) (lookup[offset] - 1);
+    				qPixels[x + y * width] = lookup[offset] - 1;
     	        }
     	        else
     	        	qPixels[x + y * width] = ditherable.nearestColorIndex(palette, c1);
