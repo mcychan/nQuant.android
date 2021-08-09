@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -20,6 +18,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 
 import com.android.nQuant.PnnLABQuantizer;
@@ -33,21 +36,25 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ComponentActivity {
     Button button;
     ImageView image;
     String filePath;
 
-    final static int IMPORT_PICTURE = 10001;
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == IMPORT_PICTURE && resultCode == RESULT_OK && null != data) {
-            filePath = data.getDataString();
-            image.setImageURI(Uri.parse(filePath));
+    ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+    new ActivityResultContracts.StartActivityForResult(),
+    new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                if (null != data) {
+                    filePath = data.getDataString();
+                    image.setImageURI(Uri.parse(filePath));
+                }
+            }
         }
-    }
+    });
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,7 +87,7 @@ public class MainActivity extends Activity {
             try {
                 Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 intent.setType("image/*");
-                startActivityForResult(Intent.createChooser(intent, "Please select Image"), IMPORT_PICTURE);
+                activityResultLauncher.launch(Intent.createChooser(intent, "Please select Image"));
             } catch (android.content.ActivityNotFoundException ex) {
                 // Potentially direct the user to the Market with a Dialog
                 Toast.makeText(getApplicationContext(), "Please install a File Manager.", Toast.LENGTH_SHORT).show();
