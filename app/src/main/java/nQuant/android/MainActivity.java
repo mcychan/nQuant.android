@@ -3,14 +3,18 @@ package nQuant.android;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Insets;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,12 +22,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.nQuant.PnnLABQuantizer;
 import com.android.nQuant.PnnQuantizer;
@@ -36,7 +41,7 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends ComponentActivity {
+public class MainActivity extends AppCompatActivity {
     Button button;
     ImageView image;
     String filePath;
@@ -142,6 +147,30 @@ public class MainActivity extends ComponentActivity {
         return dialog;
     }
 
+    private static int getScreenWidth(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
+            Insets insets = windowMetrics.getWindowInsets()
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+            return windowMetrics.getBounds().width() - insets.left - insets.right;
+        }
+
+        DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
+        return displayMetrics.widthPixels;
+    }
+
+    private static int getScreenHeight(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowMetrics windowMetrics = activity.getWindowManager().getCurrentWindowMetrics();
+            Insets insets = windowMetrics.getWindowInsets()
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+            return windowMetrics.getBounds().height() - insets.top - insets.bottom;
+        }
+
+        DisplayMetrics displayMetrics = activity.getResources().getDisplayMetrics();
+        return displayMetrics.heightPixels;
+    }
+
     public void addListenerOnButton() {
         button = findViewById(R.id.btnChangeImage);
         button.setTransformationMethod(null);
@@ -166,12 +195,12 @@ public class MainActivity extends ComponentActivity {
 
                         handler.post(() -> {
                             image.setImageBitmap(result);
-                            DisplayMetrics metrics = new DisplayMetrics();
-                            getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                            if(metrics.widthPixels < metrics.heightPixels)
-                                image.getLayoutParams().height = result.getHeight() * (metrics.widthPixels / result.getWidth());
+                            final int width = getScreenWidth(this);
+                            final int height = getScreenHeight(this);
+                            if(width < height)
+                                image.getLayoutParams().height = result.getHeight() * (width / result.getWidth());
                             else
-                                image.getLayoutParams().width = result.getWidth() * (metrics.heightPixels / result.getHeight());
+                                image.getLayoutParams().width = result.getWidth() * (height / result.getHeight());
 
                             image.setScaleType(ImageView.ScaleType.FIT_XY);
                             button.setText("Quit");
