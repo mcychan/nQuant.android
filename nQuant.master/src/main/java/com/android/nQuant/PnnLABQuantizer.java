@@ -327,10 +327,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
-		short[] closest = closestMap.get(c);
+		int[] closest = closestMap.get(c);
 		if (closest == null) {
-			closest = new short[5];
-			closest[2] = closest[3] = SHORT_MAX;
+			closest = new int[5];
+			closest[2] = closest[3] = Integer.MAX_VALUE;
 			Lab lab1 = getLab(c);
 
 			for (; k < palette.length; ++k) {
@@ -339,7 +339,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					break;
 
 				Lab lab2 = getLab(c2);
-				closest[4] = (short) (sqr(lab2.L - lab1.L) + sqr(lab2.A - lab1.A) + sqr(lab2.B - lab1.B));
+				closest[4] = (int) (Math.abs(lab2.alpha - lab1.alpha) + Math.abs(lab2.L - lab1.L) + Math.abs(lab2.A - lab1.A) + Math.abs(lab2.B - lab1.B));
 
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
@@ -353,15 +353,15 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				}
 			}
 
-			if (closest[3] == SHORT_MAX)
+			if (closest[3] == Integer.MAX_VALUE)
 				closest[2] = 0;
 		}
 
 		Random rand = new Random();
-		if (closest[2] == 0 || (rand.nextInt(SHORT_MAX) % (closest[3] + closest[2])) <= closest[3])
-			k = closest[0];
+		if (closest[2] == 0 || (rand.nextInt(32769) % (closest[3] + closest[2])) <= closest[3])
+			k = (short) closest[0];
 		else
-			k = closest[1];
+			k = (short) closest[1];
 
 		closestMap.put(c, closest);
 		return k;
@@ -480,6 +480,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		return qPixels;
 	}
 
+	@Override
 	protected Ditherable getDitherFn() {
 		return new Ditherable() {
 			@Override
@@ -494,7 +495,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					return PnnLABQuantizer.this.nearestColorIndex(palette, c);
 				return PnnLABQuantizer.this.closestColorIndex(palette, c);
 			}
-
 		};
 	}
 
@@ -502,15 +502,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels;
-		if (dither)
-			qPixels = quantize_image(cPixels, palette, true);
-		else {
-			if (nMaxColors < 64)
-				qPixels = quantize_image(cPixels, palette, false);
-			else
-				qPixels = HilbertCurve.dither(width, height, cPixels, palette, getDitherFn());
+		if (nMaxColors < 64)
+			qPixels = quantize_image(cPixels, palette, dither);
+		else
+			qPixels = HilbertCurve.dither(width, height, cPixels, palette, getDitherFn());
+
+		if(!dither)
 			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(), qPixels, 1.0f);
-		}
 
 		closestMap.clear();
 		nearestMap.clear();

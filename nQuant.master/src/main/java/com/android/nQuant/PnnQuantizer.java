@@ -24,7 +24,7 @@ public class PnnQuantizer {
 	protected Integer m_transparentColor;
 
 	private double PR = .299, PG = .587, PB = .114;
-	protected Map<Integer, short[]> closestMap = new HashMap<>();
+	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
 	public PnnQuantizer(String fname) throws IOException {
@@ -268,10 +268,10 @@ public class PnnQuantizer {
 	protected short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
-		short[] closest = closestMap.get(c);
+		int[] closest = closestMap.get(c);
 		if (closest == null) {
-			closest = new short[5];
-			closest[2] = closest[3] = SHORT_MAX;
+			closest = new int[5];
+			closest[2] = closest[3] = Integer.MAX_VALUE;
 
 			for (; k < palette.length; k++) {
 				Integer c2 = palette[k];
@@ -291,15 +291,15 @@ public class PnnQuantizer {
 				}
 			}
 
-			if (closest[3] == SHORT_MAX)
+			if (closest[3] == Integer.MAX_VALUE)
 				closest[2] = 0;
 		}
 
 		Random rand = new Random();
-		if (closest[2] == 0 || (rand.nextInt(SHORT_MAX) % (closest[3] + closest[2])) <= closest[3])
-			k = closest[0];
+		if (closest[2] == 0 || (rand.nextInt(32769) % (closest[3] + closest[2])) <= closest[3])
+			k = (short) closest[0];
 		else
-			k = closest[1];
+			k = (short) closest[1];
 
 		closestMap.put(c, closest);
 		return k;
@@ -435,9 +435,29 @@ public class PnnQuantizer {
 		return qPixels;
 	}
 
+	protected Ditherable getDitherFn() {
+		return new Ditherable() {
+			@Override
+			public int getColorIndex(int c) {
+				return PnnQuantizer.this.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+			}
+
+			@Override
+			public short nearestColorIndex(Integer[] palette, int c) {
+				boolean noBias = hasSemiTransparency || palette.length < 256;
+				if(noBias)
+					return PnnQuantizer.this.nearestColorIndex(palette, c);
+				return PnnQuantizer.this.closestColorIndex(palette, c);
+			}
+		};
+	}
+
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels = quantize_image(cPixels, palette, dither);
+		if(!dither)
+			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(), qPixels, 1.0f);
+
 		closestMap.clear();
 		nearestMap.clear();
 		return qPixels;
