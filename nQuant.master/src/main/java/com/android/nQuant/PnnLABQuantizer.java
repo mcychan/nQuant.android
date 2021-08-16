@@ -163,7 +163,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.845) / pixelMap.size());
 		}
 		else if(quan_rt > 0)
-			ratio = Math.min(1.0, Math.pow(nMaxColors, 1.05) / pixelMap.size());
+			ratio = 1.0;
 		else
 			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(4.732) / pixelMap.size());
 
@@ -339,7 +339,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					break;
 
 				Lab lab2 = getLab(c2);
-				closest[4] = (int) (Math.abs(lab2.alpha - lab1.alpha) + Math.abs(lab2.L - lab1.L) + Math.abs(lab2.A - lab1.A) + Math.abs(lab2.B - lab1.B));
+				closest[4] = (int) (sqr(lab2.L - lab1.L) + sqr(lab2.A - lab1.A) + sqr(lab2.B - lab1.B));
 
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
