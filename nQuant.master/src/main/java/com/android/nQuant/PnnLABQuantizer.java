@@ -359,7 +359,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		Random rand = new Random();
-		if (closest[2] == 0 || (rand.nextInt(32769) % (closest[3] + closest[2])) <= closest[3])
+		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			k = (short) closest[0];
 		else
 			k = (short) closest[1];
@@ -503,13 +503,16 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels;
-		if (nMaxColors < 64)
+		if (nMaxColors < 64 || hasSemiTransparency)
 			qPixels = quantize_image(cPixels, palette, dither);
 		else
 			qPixels = HilbertCurve.dither(width, height, cPixels, palette, getDitherFn());
 
-		if(!dither)
-			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(), qPixels, 1.0f);
+		if(!dither) {
+			double delta = sqr(nMaxColors) / pixelMap.size();
+			float weight = delta > 0.023 ? 1.0f : (float) (37.013 * delta + 0.906);
+			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(), qPixels, weight);
+		}
 
 		closestMap.clear();
 		nearestMap.clear();
