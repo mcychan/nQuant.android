@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
-	protected double PR = .299, PG = .587, PB = .114;
+	protected double PR = .2126, PG = .7152, PB = .0722;
 	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 
