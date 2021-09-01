@@ -69,10 +69,10 @@ public class HilbertCurve {
 	        		error.p[j] += eb.p[j] * weights[c];
 	        }
 
-	        int r_pix = (int) Math.min(0xFF, Math.max(error.p[0], 0.0));
-	        int g_pix = (int) Math.min(0xFF, Math.max(error.p[1], 0.0));
-	        int b_pix = (int) Math.min(0xFF, Math.max(error.p[2], 0.0));
-	        int a_pix = (int) Math.min(0xFF, Math.max(error.p[3], 0.0));
+	        int r_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[0], 0.0));
+	        int g_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[1], 0.0));
+	        int b_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[2], 0.0));
+	        int a_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[3], 0.0));
 	        
 	        int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 	        if (palette.length < 64) {
@@ -86,10 +86,10 @@ public class HilbertCurve {
 
 	        errorq.remove(0);
 	        c2 = palette[qPixels[x + y * width]];
-	        error.p[0] = r_pix > 255 ? 255 : r_pix - Color.red(c2);
-	        error.p[1] = g_pix > 255 ? 255 : g_pix - Color.green(c2);
-	        error.p[2] = b_pix > 255 ? 255 : b_pix - Color.blue(c2);
-	        error.p[3] = a_pix > 255 ? 255 : a_pix - Color.alpha(c2);
+	        error.p[0] = r_pix > Byte.MAX_VALUE ? Byte.MAX_VALUE : r_pix - Color.red(c2);
+	        error.p[1] = g_pix > Byte.MAX_VALUE ? Byte.MAX_VALUE : g_pix - Color.green(c2);
+	        error.p[2] = b_pix > Byte.MAX_VALUE ? Byte.MAX_VALUE : b_pix - Color.blue(c2);
+	        error.p[3] = a_pix > Byte.MAX_VALUE ? Byte.MAX_VALUE : a_pix - Color.alpha(c2);
 	        
 	        for(int j = 0; j < error.p.length; ++j) {
 	        	if(Math.abs(error.p[j]) < DITHER_MAX)
