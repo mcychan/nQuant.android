@@ -86,10 +86,10 @@ public class HilbertCurve {
 
 	        errorq.remove(0);
 	        c2 = palette[qPixels[x + y * width]];
-	        error.p[0] = r_pix - Color.red(c2);
-	        error.p[1] = g_pix - Color.green(c2);
-	        error.p[2] = b_pix - Color.blue(c2);
-	        error.p[3] = a_pix - Color.alpha(c2);
+	        error.p[0] = r_pix > 255 ? 255 : r_pix - Color.red(c2);
+	        error.p[1] = g_pix > 255 ? 255 : g_pix - Color.green(c2);
+	        error.p[2] = b_pix > 255 ? 255 : b_pix - Color.blue(c2);
+	        error.p[3] = a_pix > 255 ? 255 : a_pix - Color.alpha(c2);
 	        
 	        for(int j = 0; j < error.p.length; ++j) {
 	        	if(Math.abs(error.p[j]) < DITHER_MAX)
