@@ -37,7 +37,7 @@ public class GilbertCurve {
 	private final int[] lookup;
     
 	private static final byte DITHER_MAX = 9;
-	private static final float BLOCK_SIZE = 243f;	    
+	private static final float BLOCK_SIZE = 343f;	    
     
     private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable)
     {
