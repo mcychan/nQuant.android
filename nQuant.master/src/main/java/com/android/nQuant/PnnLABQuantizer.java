@@ -6,6 +6,7 @@ import com.android.nQuant.CIELABConvertor.Lab;
 import com.android.nQuant.CIELABConvertor.MutableDouble;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -250,6 +251,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			if ((i = bins[i].fw) == 0)
 				break;
+		}
+		
+		if (k < nMaxColors - 1)
+		{
+			palette[k++] = Color.argb(Byte.MaxValue, 0, 0, 0);
+			nMaxColors = k + 1;
+			palette = Arrays.copyOf(palette, nMaxColors);
 		}
 
 		return palette;
