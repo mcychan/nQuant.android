@@ -255,7 +255,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		
 		if (k < nMaxColors - 1)
 		{
-			palette[k++] = Color.argb(Byte.MaxValue, 0, 0, 0);
+			palette[k++] = Color.argb(BYTE_MAX, 0, 0, 0);
 			nMaxColors = k + 1;
 			palette = Arrays.copyOf(palette, nMaxColors);
 		}
