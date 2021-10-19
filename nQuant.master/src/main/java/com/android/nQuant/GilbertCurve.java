@@ -189,7 +189,7 @@ public class GilbertCurve {
         return qPixels;
     }
 	
-    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable
+    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable)
     {
     	int[] qPixels = new int[pixels.length];
     	return dither(width, height, pixels, palette, qPixels, ditherable, 3.0f);
