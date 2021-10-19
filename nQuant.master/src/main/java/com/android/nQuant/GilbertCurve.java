@@ -103,48 +103,48 @@ public class GilbertCurve {
 	}
 	
 	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {    	
-    	int w = Math.abs(ax + ay);
-    	int h = Math.abs(bx + by);
-    	int dax = sign(ax);
-    	int day = sign(ay);
-    	int dbx = sign(bx);
-    	int dby = sign(by);
+		int w = Math.abs(ax + ay);
+		int h = Math.abs(bx + by);
+		int dax = sign(ax);
+		int day = sign(ay);
+		int dbx = sign(bx);
+		int dby = sign(by);
 
-    	if (h == 1) {
-    		for (int i = 0; i < w; ++i){
-    			ditherPixel(x, y);
-    			x += dax;
-    			y += day;
+		if (h == 1) {
+			for (int i = 0; i < w; ++i){
+				ditherPixel(x, y);
+  				x += dax;
+				y += day;
+			}
+   			return;
+  		}
+
+		if (w == 1) {
+			for (int i = 0; i < h; ++i){
+				ditherPixel(x, y);
+				x += dbx;
+				y += dby;
+			}
+			return;
     		}
-    		return;
-    	}
 
-    	if (w == 1) {
-    		for (int i = 0; i < h; ++i){
-    			ditherPixel(x, y);
-    			x += dbx;
-    			y += dby;
-    		}
-    		return;
-    	}
+    		int ax2 = ax / 2;
+    		int ay2 = ay / 2;
+   		int bx2 = bx / 2;
+    		int by2 = by / 2;
 
-    	int ax2 = ax / 2;
-    	int ay2 = ay / 2;
-    	int bx2 = bx / 2;
-    	int by2 = by / 2;
+  		int w2 = Math.abs(ax2 + ay2);
+   		int h2 = Math.abs(bx2 + by2);
 
-    	int w2 = Math.abs(ax2 + ay2);
-    	int h2 = Math.abs(bx2 + by2);
-
-    	if (2 * w > 3 * h) {
-    		if ((w2 % 2) != 0 && w > 2) {
-    			ax2 += dax;
-    			ay2 += day;
-    		}    		
-    		generate2d(x, y, ax2, ay2, bx, by);
-    		generate2d(x + ax2, y + ay2, ax - ax2, ay - ay2, bx, by);
-    		return;
-    	}
+   		if (2 * w > 3 * h) {
+ 			if ((w2 % 2) != 0 && w > 2) {
+				ax2 += dax;
+ 				ay2 += day;
+			}    		
+			generate2d(x, y, ax2, ay2, bx, by);
+			generate2d(x + ax2, y + ay2, ax - ax2, ay - ay2, bx, by);
+			return;
+		}
     	
 		if ((h2 % 2) != 0 && h > 2) {
 			bx2 += dbx;
