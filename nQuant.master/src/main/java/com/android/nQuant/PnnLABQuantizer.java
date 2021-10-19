@@ -158,13 +158,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (quan_rt > 0) {
 				bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
 				if(nMaxColors < 64)
-					bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
+					bins[j].cnt = (int) bins[j].cnt;
 			}
 		}
 		if (quan_rt > 0) {
 			bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
 			if(nMaxColors < 64)
-				bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
+				bins[j].cnt = (int) bins[j].cnt;
 		}
 
 		if(quan_rt != 0 && nMaxColors < 64) {
