@@ -26,6 +26,7 @@ public class GilbertCurve {
 		}
 	}
 	
+	private final float divisor;
 	private final int width;
 	private final int height;
 	private final int[] pixels;
@@ -39,18 +40,20 @@ public class GilbertCurve {
 	private static final byte DITHER_MAX = 9;
 	private static final float BLOCK_SIZE = 343f;	    
     
-    private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable)
-    {
-    	this.width = width;
-    	this.height = height;
-        this.pixels = image;
-        this.palette = palette;
-        this.qPixels = qPixels;
-        this.ditherable = ditherable;	        
-        errorq = new ArrayList<>();
-        weights = new float[DITHER_MAX];
-        lookup = new int[65536];
-    }
+
+	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable)
+	{
+		this.divisor = divisor;
+		this.width = width;
+		this.height = height;
+		this.pixels = image;
+		this.palette = palette;
+		this.qPixels = qPixels;
+		this.ditherable = ditherable;	        
+		errorq = new ArrayList<>();
+		weights = new float[DITHER_MAX];
+		lookup = new int[65536];
+	}
 
 	private static int sign(int x) {
 		if(x < 0)
@@ -58,8 +61,8 @@ public class GilbertCurve {
 		return (x > 0) ? 1 : 0;
 	}
     
-    private void ditherPixel(int x, int y) {
-    	final int bidx = x + y * width;
+	private void ditherPixel(int x, int y) {
+		final int bidx = x + y * width;
 		int pixel = pixels[bidx];
 		ErrorBox error = new ErrorBox(pixel);	    	
 		for(int c = 0; c < DITHER_MAX; ++c) {
@@ -179,10 +182,16 @@ public class GilbertCurve {
     		generate2d(0, 0, 0, height, width, 0);
     }   
     
-    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable)
+    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float divisor)
     {
     	int[] qPixels = new int[pixels.length];
-    	new GilbertCurve(width, height, pixels, palette, qPixels, ditherable).run();        
+    	new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, divisor).run();        
         return qPixels;
+    }
+	
+    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable
+    {
+    	int[] qPixels = new int[pixels.length];
+    	return dither(width, height, pixels, palette, qPixels, ditherable, 3.0f);
     }
 }
