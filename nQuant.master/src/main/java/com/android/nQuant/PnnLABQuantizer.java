@@ -22,7 +22,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 	private static final class Pnnbin {
 		float ac = 0, Lc = 0, Ac = 0, Bc = 0, err = 0;
-		int cnt = 0;
+		float cnt = 0;
 		int nn, fw, bk, tm, mtm;
 	}
 
@@ -42,12 +42,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double err = 1e100;
 
 		Pnnbin bin1 = bins[idx];
-		int n1 = bin1.cnt;
+		float n1 = bin1.cnt;
 
 		Lab lab1 = new Lab();
 		lab1.alpha = bin1.ac; lab1.L = bin1.Lc; lab1.A = bin1.Ac; lab1.B = bin1.Bc;
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
-			double n2 = bins[i].cnt;
+			float n2 = bins[i].cnt;
 			double nerr2 = (n1 * n2) / (n1 + n2);
 			if (nerr2 >= err)
 				continue;
@@ -105,6 +105,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		if(hasSemiTransparency)
 			PR = PG = PB = 1.0;
+		else if(pixels.length < sqr(512)) {
+			PR = 0.299; PG = 0.587; PB = 0.114;
+		}
 
 		Pnnbin[] bins = new Pnnbin[65536];
 
@@ -122,7 +125,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Lc += lab1.L;
 			tb.Ac += lab1.A;
 			tb.Bc += lab1.B;
-			tb.cnt++;
+			tb.cnt += 1.0f;
 		}
 
 		/* Cluster nonempty bins at one end of array */
@@ -147,14 +150,21 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else if ((proportional < .018 || proportional > .5) && nMaxColors < 64)
 			quan_rt = 0;
 
-		if (quan_rt > 0)
-			bins[0].cnt = (int) Math.sqrt(bins[0].cnt);
-		for (int i = 0; i < maxbins - 1; ++i) {
-			bins[i].fw = i + 1;
-			bins[i + 1].bk = i;
+		int j = 0;
+		for (; j < maxbins - 1; ++j) {
+			bins[j].fw = j + 1;
+			bins[j + 1].bk = j;
 
-			if (quan_rt > 0)
-				bins[i + 1].cnt = (int) Math.sqrt(bins[i + 1].cnt);
+			if (quan_rt > 0) {
+				bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
+				if(nMaxColors < 64)
+					bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
+			}
+		}
+		if (quan_rt > 0) {
+			bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
+			if(nMaxColors < 64)
+				bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
 		}
 
 		if(quan_rt != 0 && nMaxColors < 64) {
@@ -163,8 +173,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			else
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.845) / pixelMap.size());
 		}
-		else if(quan_rt > 0)
-			ratio = 1.0;
 		else
 			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(4.732) / pixelMap.size());
 
@@ -338,17 +346,16 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
 			closest = new int[5];
-			closest[2] = closest[3] = Integer.MAX_VALUE;
-			Lab lab1 = getLab(c);
+			closest[2] = closest[3] = Short.MAX_VALUE;
 
 			for (; k < palette.length; ++k) {
 				Integer c2 = palette[k];
 				if(c2 == null)
 					break;
 
-				Lab lab2 = getLab(c2);
-				closest[4] = (int) (PR * sqr(Color.red(c2) - Color.red(c)) + PG * sqr(Color.green(c2) - Color.green(c)) +
-						PB * sqr(Color.blue(c2) - Color.blue(c)) + sqr(lab2.B - lab1.B) / 2.0);
+				double err = PR * sqr(Color.red(c2) - Color.red(c)) + PG * sqr(Color.green(c2) - Color.green(c)) +
+						PB * sqr(Color.blue(c2) - Color.blue(c));
+				closest[4] = err > Short.MAX_VALUE ? Short.MAX_VALUE : (short) err;
 
 				if (closest[4] < closest[2]) {
 					closest[1] = closest[0];
@@ -362,7 +369,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				}
 			}
 
-			if (closest[3] == Integer.MAX_VALUE)
+			if (closest[3] == Short.MAX_VALUE)
 				closest[2] = 0;
 		}
 
