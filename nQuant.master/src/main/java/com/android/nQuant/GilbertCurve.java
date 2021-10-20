@@ -97,7 +97,7 @@ public class GilbertCurve {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			error.p[j] /= 3.0f;
+			error.p[j] /= divisor;
 		}
 		errorq.add(error);
 	}
