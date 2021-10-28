@@ -496,7 +496,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		return qPixels;
 	}
 
-	@Override
 	protected Ditherable getDitherFn() {
 		return new Ditherable() {
 			@Override
