@@ -225,8 +225,8 @@ public class PnnQuantizer {
 		for (int i = 0;; ++k) {
 			int alpha = (int) bins[i].ac;
 			palette[k] = Color.argb(alpha, (int) bins[i].rc, (int) bins[i].gc, (int) bins[i].bc);
-			if (m_transparentPixelIndex >= 0 && m_transparentColor.equals(palette[k])) {
-				Integer temp = palette[0]; palette[0] = palette[k]; palette[k] = temp;
+			if (m_transparentPixelIndex >= 0 && alpha == 0) {
+				Integer temp = palette[0]; palette[0] = m_transparentColor; palette[k] = temp;
 			}
 
 			if ((i = bins[i].fw) == 0)
@@ -494,8 +494,8 @@ public class PnnQuantizer {
 			cPixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < BYTE_MAX) {
 				if (alfa == 0) {
-                    m_transparentPixelIndex = i;
-					m_transparentColor = cPixels[i];
+					m_transparentPixelIndex = i;
+					m_transparentColor = cPixels[i] = Color.argb(0, 51, 102, 102);
 				}
 				else
 					hasSemiTransparency = true;
