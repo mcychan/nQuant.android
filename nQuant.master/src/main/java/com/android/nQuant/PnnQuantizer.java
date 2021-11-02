@@ -485,7 +485,7 @@ public class PnnQuantizer {
 
 	public Bitmap convert(int nMaxColors, boolean dither) {
 		final int[] cPixels = new int[pixels.length];
-		for (int i = 0; i < cPixels.length; ++i) {
+		for (int i = cPixels.length - 1; i >= 0; --i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
 			int r   = (pixel >> 16) & 0xff;
@@ -495,7 +495,7 @@ public class PnnQuantizer {
 			if (alfa < BYTE_MAX) {
 				if (alfa == 0) {
 					m_transparentPixelIndex = i;
-					m_transparentColor = cPixels[i] = Color.argb(0, 51, 102, 102);
+					m_transparentColor = cPixels[i];
 				}
 				else
 					hasSemiTransparency = true;
