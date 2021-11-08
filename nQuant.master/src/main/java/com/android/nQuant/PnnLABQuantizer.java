@@ -345,7 +345,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		short k = 0;
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
-			closest = new int[5];
+			closest = new int[4];
 			closest[2] = closest[3] = Short.MAX_VALUE;
 
 			for (; k < palette.length; ++k) {
@@ -355,32 +355,33 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 				double err = PR * sqr(Color.red(c2) - Color.red(c)) + PG * sqr(Color.green(c2) - Color.green(c)) +
 						PB * sqr(Color.blue(c2) - Color.blue(c));
-				closest[4] = err > Short.MAX_VALUE ? Short.MAX_VALUE : (short) err;
+				if(err > Short.MAX_VALUE)
+					err = Short.MAX_VALUE;
 
-				if (closest[4] < closest[2]) {
+				if (err < closest[2]) {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
 					closest[0] = k;
-					closest[2] = closest[4];
+					if(err > palette.length)
+						closest[0] = nearestColorIndex(palette, c);
+					closest[2] = (int) err;
 				}
-				else if (closest[4] < closest[3]) {
+				else if (err < closest[3]) {
 					closest[1] = k;
-					closest[3] = closest[4];
+					closest[3] = (int) err;
 				}
 			}
 
 			if (closest[3] == Short.MAX_VALUE)
 				closest[2] = 0;
+			
+			closestMap.put(c, closest);
 		}
 
 		Random rand = new Random();
 		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
-			k = (short) closest[0];
-		else
-			k = (short) closest[1];
-
-		closestMap.put(c, closest);
-		return k;
+			return (short) closest[0];
+		return (short) closest[1];
 	}
 
 	@Override
