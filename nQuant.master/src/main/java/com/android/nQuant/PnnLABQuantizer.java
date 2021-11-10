@@ -373,14 +373,20 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			}
 
 			if (closest[3] == Short.MAX_VALUE)
-				closest[2] = 0;
+				closest[1] = closest[0];
 			
 			closestMap.put(c, closest);
 		}
 
 		Random rand = new Random();
-		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
+		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3]) {
+			if(closest[2] > palette.length)
+				return nearestColorIndex(palette, c);
 			return (short) closest[0];
+		}
+		
+		if(closest[3] > palette.length)
+			return nearestColorIndex(palette, c);
 		return (short) closest[1];
 	}
 
