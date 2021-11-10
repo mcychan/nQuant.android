@@ -362,8 +362,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
 					closest[0] = k;
-					if(err > palette.length)
-						closest[0] = nearestColorIndex(palette, c);
 					closest[2] = (int) err;
 				}
 				else if (err < closest[3]) {
