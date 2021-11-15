@@ -169,12 +169,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(4.732) / pixelMap.size());
+				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
 			else
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.845) / pixelMap.size());
+				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.632) / maxbins);
 		}
 		else
-			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(4.732) / pixelMap.size());
+			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
 
 		if (quan_rt < 0) {
 			ratio += 0.5;
@@ -195,6 +195,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				heap[l] = h;
 			}
 			heap[l] = i;
+		}
+
+		if (quan_rt > 0 && nMaxColors < 64 && proportional > .035) {
+			int dir = proportional > .04 ? 1 : -1;
+			ratio = Math.min(1.0, proportional + dir * nMaxColors * Math.exp(1.632) / maxbins);
 		}
 
 		/* Merge bins which increase error the least */
