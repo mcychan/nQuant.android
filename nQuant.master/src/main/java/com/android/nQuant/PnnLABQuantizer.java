@@ -171,7 +171,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (proportional > .018 && proportional < .022)
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
 			else
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.632) / maxbins);
+				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.718) / maxbins);
 		}
 		else
 			ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
@@ -515,8 +515,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			@Override
 			public short nearestColorIndex(Integer[] palette, int c) {
-				boolean noBias = hasSemiTransparency || palette.length < 64;
-				if(noBias)
+				if(hasSemiTransparency)
 					return PnnLABQuantizer.this.nearestColorIndex(palette, c);
 				return PnnLABQuantizer.this.closestColorIndex(palette, c);
 			}
