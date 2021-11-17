@@ -360,8 +360,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 				double err = PR * sqr(Color.red(c2) - Color.red(c)) + PG * sqr(Color.green(c2) - Color.green(c)) +
 						PB * sqr(Color.blue(c2) - Color.blue(c));
-				if(err > Short.MAX_VALUE)
-					err = Short.MAX_VALUE;
 
 				if (err < closest[2]) {
 					closest[1] = closest[0];
