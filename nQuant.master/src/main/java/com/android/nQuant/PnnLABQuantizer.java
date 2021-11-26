@@ -350,6 +350,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected short closestColorIndex(final Integer[] palette, final int c)
 	{
 		short k = 0;
+		if (Color.alpha(c) <= alphaThreshold)
+			return k;
+		
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
 			closest = new int[4];
