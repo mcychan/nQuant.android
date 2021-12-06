@@ -29,19 +29,19 @@ public class PnnQuantizer {
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
 	public PnnQuantizer(String fname) throws IOException {
-        fromBitmap(fname);
+		fromBitmap(fname);
 	}
 
-    private void fromBitmap(Bitmap bitmap) throws IOException {
+	private void fromBitmap(Bitmap bitmap) throws IOException {
 		width = bitmap.getWidth();
 		height = bitmap.getHeight();
-        pixels = new int [width * height];
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
-    }
+		pixels = new int [width * height];
+		bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+	}
 
 	private void fromBitmap(String fname) throws IOException {
 		Bitmap bitmap = BitmapFactory.decodeFile(fname);
-        fromBitmap(bitmap);
+		fromBitmap(bitmap);
 	}
 
 	private static final class Pnnbin {
@@ -90,6 +90,22 @@ public class PnnQuantizer {
 		bin1.err = (float) err;
 		bin1.nn = nn;
 	}
+	
+	@FunctionalInterface
+	protected interface QuanFn {
+		float get(float cnt);
+	}
+	
+	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
+		if (quan_rt > 0) {
+			if (nMaxColors < 64)
+				return cnt -> (float) Math.sqrt(cnt);
+			return cnt -> (int) Math.sqrt(cnt);
+		}
+		if (quan_rt < 0)
+			return cnt -> (int) Math.cbrt(cnt);
+		return cnt -> cnt;
+	}
 
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
 	{
@@ -133,29 +149,17 @@ public class PnnQuantizer {
 		double weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
+		
+		QuanFn quanFn = getQuanFn(nMaxColors, quan_rt);
 
 		int j = 0;
 		for (; j < maxbins - 1; ++j) {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 			
-			if (quan_rt > 0) {
-				if(nMaxColors < 64)
-					bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
-				else
-					bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
-			}
-			else if (quan_rt < 0)
-				bins[j].cnt = (int) Math.cbrt(bins[j].cnt);
+			bins[j].cnt = quanFn.get(bins[j].cnt);
 		}
-		if (quan_rt > 0) {
-			if(nMaxColors < 64)
-				bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
-			else
-				bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
-		}
-		else if (quan_rt < 0)
-			bins[j].cnt = (int) Math.cbrt(bins[j].cnt);
+		bins[j].cnt = quanFn.get(bins[j].cnt);
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
@@ -536,22 +540,22 @@ public class PnnQuantizer {
 			}
 		}
 
-        if (nMaxColors > 256)
-            dither = true;		
-            int[] qPixels = dither(cPixels, palette, nMaxColors, width, height, dither);
+		if (nMaxColors > 256)
+			dither = true;		
+		int[] qPixels = dither(cPixels, palette, nMaxColors, width, height, dither);
 
-        if (m_transparentPixelIndex >= 0) {
-            int k = qPixels[m_transparentPixelIndex];
-            if (nMaxColors > 2)
-                palette[k] = m_transparentColor;
-            else if (!palette[k].equals(m_transparentColor)) {
-                int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
-            }
-        }
+		if (m_transparentPixelIndex >= 0) {
+			int k = qPixels[m_transparentPixelIndex];
+			if (nMaxColors > 2)
+				palette[k] = m_transparentColor;
+			else if (!palette[k].equals(m_transparentColor)) {
+				int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
+			}
+		}
 
-        if (m_transparentPixelIndex >= 0)
-            return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
-        return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
+		if (m_transparentPixelIndex >= 0)
+			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
+		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
 	}
 
 }
