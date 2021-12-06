@@ -99,6 +99,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		bin1.err = (float) err;
 		bin1.nn = nn;
 	}
+	
+	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
+		if (quan_rt > 0) {
+			if (quan_rt > 1)
+				return cnt -> (int) Math.pow(cnt, 0.75);
+			if (nMaxColors < 64)
+				return cnt -> (int) Math.sqrt(cnt);
+			return cnt -> (float) Math.sqrt(cnt);
+		}
+		return cnt -> cnt;
+	}
 
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
@@ -151,29 +162,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
+		
+		QuanFn quanFn = getQuanFn(nMaxColors, quan_rt);
 
 		int j = 0;
 		for (; j < maxbins - 1; ++j) {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 
-			if (quan_rt > 0) {				
-				if (quan_rt > 1)
-					bins[j].cnt = (int) Math.pow(bins[j].cnt, 0.75);
-				else if (nMaxColors < 64)
-					bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
-				else
-					bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
-			}
+			bins[j].cnt = quanFn.get(bins[j].cnt);
 		}
-		if (quan_rt > 0) {
-			if (quan_rt > 1)
-				bins[j].cnt = (int) Math.pow(bins[j].cnt, 0.75);
-			else if (nMaxColors < 64)
-				bins[j].cnt = (int) Math.sqrt(bins[j].cnt);
-			else
-				bins[j].cnt = (float) Math.sqrt(bins[j].cnt);
-		}
+		bins[j].cnt = quanFn.get(bins[j].cnt);
 
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
