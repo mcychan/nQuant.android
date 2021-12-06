@@ -149,7 +149,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			quan_rt = -1;
 		
 		double weight = nMaxColors * 1.0 / maxbins;
-		if (weight < .0014 || (weight > .0015 && weight < .002))
+		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
 
 		int j = 0;
