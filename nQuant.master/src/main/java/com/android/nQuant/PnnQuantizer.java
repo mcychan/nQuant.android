@@ -234,15 +234,15 @@ public class PnnQuantizer {
 			if (m_transparentPixelIndex >= 0 && alpha == 0) {
 				Integer temp = palette[0]; palette[0] = m_transparentColor; palette[k] = temp;
 			}
-			
-			if (extbins < 0) {
-				if (bins[++i] == null)
-					break;
-				continue;
-			}
 
 			if ((i = bins[i].fw) == 0)
 				break;
+		}
+		
+		if (k < nMaxColors - 1)
+		{
+			nMaxColors = k + 1;
+			palette = Arrays.copyOf(palette, nMaxColors);
 		}
 
 		return palette;
