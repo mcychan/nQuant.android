@@ -179,6 +179,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
 			else if (proportional > .1)
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.997) / maxbins);
+			else if(proportional > .03)
+				ratio = Math.min(1.0, nMaxColors * Math.exp(3.13) / maxbins);
 			else
 				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.718) / maxbins);
 		}
@@ -187,10 +189,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else
 			ratio = Math.min(hasSemiTransparency ? 0.0 : 1.0, 0.14 * Math.exp(4.679 * proportional));
 
-		if (quan_rt < 0) {
-			ratio += 0.5;
-			ratio = Math.min(1.0, ratio);
-		}
+		if (quan_rt < 0)
+			ratio = 0.0;
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
