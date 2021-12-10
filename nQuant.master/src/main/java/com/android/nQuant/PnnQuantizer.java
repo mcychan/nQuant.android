@@ -76,12 +76,23 @@ public class PnnQuantizer {
 		double wg = bin1.gc;
 		double wb = bin1.bc;
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
-			double nerr = PR * sqr(bins[i].rc - wr) + PG * sqr(bins[i].gc - wg) + PB * sqr(bins[i].bc - wb);
-			if(hasSemiTransparency)
-				nerr += sqr(bins[i].ac - wa);
+			double n2 = bins[i].cnt, nerr2 = (n1 * n2) / (n1 + n2);
+			if (nerr2 >= err)
+				continue;
 			
-			float n2 = bins[i].cnt;
-			nerr *= (n1 * n2) / (n1 + n2);
+			double nerr = nerr2 * BitmapUtilities.sqr(bins[i].ac - wa);
+			if (nerr >= err)
+				continue;
+			
+			nerr += nerr2 * PR * BitmapUtilities.sqr(bins[i].rc - wr);
+			if (nerr >= err)
+				continue;
+
+			nerr += nerr2 * PG * BitmapUtilities.sqr(bins[i].gc - wg);
+			if (nerr >= err)
+				continue;
+
+			nerr += nerr2 * PB * BitmapUtilities.sqr(bins[i].bc - wb);				
 			if (nerr >= err)
 				continue;
 			err = nerr;
@@ -262,19 +273,19 @@ public class PnnQuantizer {
 		for (short i=0; i<palette.length; ++i) {
 			int c2 = palette[i];
 
-			double curdist = Math.abs(Color.alpha(c2) - Color.alpha(c));
+			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PR * Math.abs(Color.red(c2) - Color.red(c));
+			curdist += PR * sqr(Color.red(c2) - Color.red(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PG * Math.abs(Color.green(c2) - Color.green(c));
+			curdist += PG * sqr(Color.green(c2) - Color.green(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PB * Math.abs(Color.blue(c2) - Color.blue(c));
+			curdist += PB * sqr(Color.blue(c2) - Color.blue(c));
 			if (curdist > mindist)
 				continue;
 
