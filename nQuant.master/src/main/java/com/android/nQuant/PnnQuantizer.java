@@ -80,19 +80,19 @@ public class PnnQuantizer {
 			if (nerr2 >= err)
 				continue;
 			
-			double nerr = nerr2 * BitmapUtilities.sqr(bins[i].ac - wa);
+			double nerr = nerr2 * sqr(bins[i].ac - wa);
 			if (nerr >= err)
 				continue;
 			
-			nerr += nerr2 * PR * BitmapUtilities.sqr(bins[i].rc - wr);
+			nerr += nerr2 * PR * sqr(bins[i].rc - wr);
 			if (nerr >= err)
 				continue;
 
-			nerr += nerr2 * PG * BitmapUtilities.sqr(bins[i].gc - wg);
+			nerr += nerr2 * PG * sqr(bins[i].gc - wg);
 			if (nerr >= err)
 				continue;
 
-			nerr += nerr2 * PB * BitmapUtilities.sqr(bins[i].bc - wb);				
+			nerr += nerr2 * PB * sqr(bins[i].bc - wb);				
 			if (nerr >= err)
 				continue;
 			err = nerr;
