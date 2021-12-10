@@ -542,7 +542,7 @@ public class PnnQuantizer {
 		else {
 			palette = new Integer[nMaxColors];
 			if (m_transparentPixelIndex >= 0) {
-				palette[0] = Color.argb(0, 0, 0, 0);
+				palette[0] = m_transparentColor;
 				palette[1] = Color.BLACK;
 			}
 			else {
