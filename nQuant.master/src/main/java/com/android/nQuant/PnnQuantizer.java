@@ -541,7 +541,7 @@ public class PnnQuantizer {
 			palette = pnnquan(cPixels, nMaxColors, (short)1);
 		else {
 			palette = new Integer[nMaxColors];
-			if (hasSemiTransparency) {
+			if (m_transparentPixelIndex >= 0) {
 				palette[0] = Color.argb(0, 0, 0, 0);
 				palette[1] = Color.BLACK;
 			}
