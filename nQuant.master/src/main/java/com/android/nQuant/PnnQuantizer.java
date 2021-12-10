@@ -507,14 +507,14 @@ public class PnnQuantizer {
 			int g = (pixel >>  8) & 0xff;
 			int b  = (pixel      ) & 0xff;
 			cPixels[i] = Color.argb(alfa, r, g, b);
-			if (alfa < 200) {
+			if (alfa < 0xF0) {
 				if (alfa == 0) {
 					m_transparentPixelIndex = i;
 					m_transparentColor = cPixels[i];
 					if(m_transparentColor < BYTE_MAX)
 						cPixels[i] = m_transparentColor = Color.argb(alfa, 51, 102, 102);
 				}
-				else
+				else if(alfa > 0xF)
 					hasSemiTransparency = true;
 			}
 		}
