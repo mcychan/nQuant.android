@@ -17,12 +17,12 @@ import java.util.Random;
 public class PnnQuantizer {
 	protected final short SHORT_MAX = Short.MAX_VALUE;
 	protected final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
-	protected short alphaThreshold = 0;
+	protected short alphaThreshold = 0xF;
 	protected boolean hasSemiTransparency = false;
 	protected int m_transparentPixelIndex = -1;
 	protected int width, height;
 	protected int[] pixels = null;
-	protected Integer m_transparentColor;
+	protected Integer m_transparentColor = Color.argb(alfa, 51, 102, 102);
 
 	private double PR = .2126, PG = .7152, PB = .0722;
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
@@ -513,11 +513,12 @@ public class PnnQuantizer {
 			if (alfa < 0xE0) {
 				if (alfa == 0) {
 					m_transparentPixelIndex = i;
-					m_transparentColor = cPixels[i];
-					if(m_transparentColor < BYTE_MAX)
-						cPixels[i] = m_transparentColor = Color.argb(alfa, 51, 102, 102);
+					if(nMaxColors > 2)
+						m_transparentColor = cPixels[i];
+					else
+						cPixels[i] = m_transparentColor;
 				}
-				else if(alfa > 0xF)
+				else if(alfa > alphaThreshold)
 					hasSemiTransparency = true;
 			}
 		}
