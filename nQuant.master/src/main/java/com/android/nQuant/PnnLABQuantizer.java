@@ -262,7 +262,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		/* Fill palette */
-		Integer[] palette = new Integer[nMaxColors];
+		Integer[] palette = new Integer[extbins > 0 ? nMaxColors : maxbins];
 		short k = 0;
 		for (int i = 0;; ++k) {
 			Lab lab1 = new Lab();
@@ -275,12 +275,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			if ((i = bins[i].fw) == 0)
 				break;
-		}
-		
-		if (k < nMaxColors - 1)
-		{
-			nMaxColors = k + 1;
-			palette = Arrays.copyOf(palette, nMaxColors);
 		}
 
 		return palette;
@@ -367,9 +361,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest[2] = closest[3] = Short.MAX_VALUE;
 
 			for (; k < palette.length; ++k) {
-				Integer c2 = palette[k];
-				if(c2 == null)
-					break;
+				int c2 = palette[k];
 
 				double err = PR * sqr(Color.red(c2) - Color.red(c)) + PG * sqr(Color.green(c2) - Color.green(c)) +
 						PB * sqr(Color.blue(c2) - Color.blue(c));
