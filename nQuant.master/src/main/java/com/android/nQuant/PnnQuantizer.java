@@ -1,7 +1,7 @@
 package com.android.nQuant;
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev
-Copyright (c) 2018-2019 Miller Cy Chan
+Copyright (c) 2018-2021 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
 import android.graphics.Bitmap;
@@ -237,7 +237,7 @@ public class PnnQuantizer {
 		}
 
 		/* Fill palette */
-		Integer[] palette = new Integer[nMaxColors];
+		Integer[] palette = new Integer[extbins > 0 ? nMaxColors : maxbins];
 		short k = 0;
 		for (int i = 0;; ++k) {
 			int alpha = (int) bins[i].ac;
@@ -248,12 +248,6 @@ public class PnnQuantizer {
 
 			if ((i = bins[i].fw) == 0)
 				break;
-		}
-		
-		if (k < nMaxColors - 1)
-		{
-			nMaxColors = k + 1;
-			palette = Arrays.copyOf(palette, nMaxColors);
 		}
 
 		return palette;
@@ -308,9 +302,7 @@ public class PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 
 			for (; k < palette.length; ++k) {
-				Integer c2 = palette[k];
-				if(c2 == null)
-					break;
+				int c2 = palette[k];
 
 				final int err = (int) (Math.abs(Color.alpha(c) - Color.alpha(c2)) + Math.abs(Color.red(c) - Color.red(c2)) + Math.abs(Color.green(c) - Color.green(c2)) + Math.abs(Color.blue(c) - Color.blue(c2)));
 				if (err < closest[2]) {
