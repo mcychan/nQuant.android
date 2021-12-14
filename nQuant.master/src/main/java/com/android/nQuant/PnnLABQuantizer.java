@@ -54,8 +54,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double alphaDiff = hasSemiTransparency ? Math.abs(lab2.alpha - lab1.alpha) : 0;
-			double nerr = nerr2 * sqr(alphaDiff) / Math.exp(1.5);
+			double alphaDiff = hasSemiTransparency ? (lab2.alpha - lab1.alpha) / Math.exp(1.5) : 0;
+			double nerr = nerr2 * sqr(alphaDiff);
 			if (nerr >= err)
 				continue;
 
@@ -294,29 +294,19 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double mindist = SHORT_MAX;
 		Lab lab1 = getLab(c);
 		for (short i=0; i<palette.length; ++i) {
-			int c2 = palette[i];
-			Lab lab2 = getLab(c2);
+			int c2 = palette[i];			
 
-			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
+			double curdist = hasSemiTransparency ? Math.abs(Color.alpha(c2) - Color.alpha(c)) / Math.exp(0.75) : 0;
 			if (curdist > mindist)
 				continue;
 
+			Lab lab2 = getLab(c2);
 			if (palette.length > 32 || hasSemiTransparency) {
-				curdist += PR * sqr(Color.red(c2) - Color.red(c));
+				curdist += Math.abs(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
 
-				curdist += PG * sqr(Color.green(c2) - Color.green(c));
-				if (curdist > mindist)
-					continue;
-
-				curdist += PB * sqr(Color.blue(c2) - Color.blue(c));
-				if (PB < 1) {
-					if (curdist > mindist)
-						continue;
-
-					curdist += sqr(lab2.B - lab1.B) / 2.0;
-				}
+				curdist += Math.sqrt(sqr(lab2.A - lab1.A) + sqr(lab2.B - lab1.B));
 			}
 			else {
 				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
