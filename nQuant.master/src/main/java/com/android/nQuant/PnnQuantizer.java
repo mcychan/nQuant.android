@@ -453,15 +453,6 @@ public class PnnQuantizer {
 			return qPixels;
 		}
 
-		if(hasSemiTransparency || nMaxColors < 256) {
-			for (int i = 0; i < qPixels.length; ++i)
-				qPixels[i] = palette[nearestColorIndex(palette, pixels[i])];
-		}
-		else {
-			for (int i = 0; i < qPixels.length; ++i)
-				qPixels[i] = palette[closestColorIndex(palette, pixels[i])];
-		}
-
 		return qPixels;
 	}
 
@@ -484,20 +475,24 @@ public class PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels;
-		if(hasSemiTransparency)
-			qPixels = GilbertCurve.dither(width, height, cPixels, palette, getDitherFn(dither), 1.25f);
-		else if (nMaxColors < 64 && nMaxColors > 32)
+		Ditherable ditherable = getDitherFn(dither);
+		/*if(hasSemiTransparency)
+			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
+		else if (nMaxColors < 64 && nMaxColors > 32) */
 			qPixels = quantize_image(cPixels, palette, dither);
-		else if(nMaxColors <= 32)
-			qPixels = GilbertCurve.dither(width, height, cPixels, palette, getDitherFn(dither), nMaxColors > 2 ? 1.8f : 1.5f);
+		/*else if(nMaxColors <= 32)
+			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
 		else
-			qPixels = GilbertCurve.dither(width, height, cPixels, palette, getDitherFn(dither));
+			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
 		if(!dither)
-			BlueNoise.dither(width, height, cPixels, palette, getDitherFn(dither), qPixels, 1.0f);
+			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);*/
 
 		closestMap.clear();
 		nearestMap.clear();
+
+		for (int i = 0; i < qPixels.length; ++i)
+			qPixels[i] = palette[ditherable.nearestColorIndex(palette, pixels[i])];
 		return qPixels;
 	}
 
