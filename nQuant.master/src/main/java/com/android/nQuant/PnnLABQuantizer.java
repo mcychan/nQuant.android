@@ -301,7 +301,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				continue;
 
 			Lab lab2 = getLab(c2);
-			if (palette.length > 32 || hasSemiTransparency) {
+			if (palette.length <= 4) {
+				curdist = sqr(Color.red(c2) - Color.red(c)) + sqr(Color.green(c2) - Color.green(c)) + sqr(Color.blue(c2) - Color.blue(c));
+				if(hasSemiTransparency)
+					curdist += sqr(Color.alpha(c2) - Color.alpha(c));
+			}
+			else if (palette.length > 32 || hasSemiTransparency) {
 				curdist += Math.abs(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
