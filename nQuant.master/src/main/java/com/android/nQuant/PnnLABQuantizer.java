@@ -176,13 +176,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(3.13) / maxbins);
+				ratio = Math.min(1.0, proportional + weight * Math.exp(3.13));
 			else if (proportional > .1)
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.997) / maxbins);
+				ratio = Math.min(1.0, 1.0 - weight);
 			else if(proportional > .03)
-				ratio = Math.min(1.0, nMaxColors * Math.exp(3.13) / maxbins);
+				ratio = Math.min(1.0, weight * Math.exp(3.13));
 			else
-				ratio = Math.min(1.0, proportional + nMaxColors * Math.exp(1.718) / maxbins);
+				ratio = Math.min(1.0, proportional + weight * Math.exp(1.718));
 		}
 		else if(nMaxColors > 256)
 			ratio = Math.min(hasSemiTransparency ? 0.0 : 1.0, 1 - 1.0 / proportional);
@@ -190,7 +190,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			ratio = Math.min(hasSemiTransparency ? 0.0 : 1.0, 0.14 * Math.exp(4.679 * proportional));
 
 		if (quan_rt < 0)
-			ratio = Math.min(1.0, nMaxColors * Math.exp(3.13) / maxbins);
+			ratio = Math.min(1.0, weight * Math.exp(3.13));
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
@@ -210,7 +210,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		if (quan_rt > 0 && nMaxColors < 64 && proportional > .035) {
 			int dir = proportional > .04 ? 1 : -1;
-			ratio = Math.min(1.0, proportional + dir * nMaxColors * Math.exp(1.632) / maxbins);
+			ratio = Math.min(1.0, proportional + dir * weight * Math.exp(1.632));
 		}
 
 		/* Merge bins which increase error the least */
