@@ -9,14 +9,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
+
 public class PnnQuantizer {
-	protected final short SHORT_MAX = Short.MAX_VALUE;
-	protected final char BYTE_MAX = -Byte.MIN_VALUE + Byte.MAX_VALUE;
 	protected short alphaThreshold = 0xF;
 	protected boolean hasSemiTransparency = false;
 	protected int m_transparentPixelIndex = -1;
@@ -50,20 +49,6 @@ public class PnnQuantizer {
 		int nn, fw, bk, tm, mtm;
 	}
 
-	protected int getColorIndex(final int c, boolean hasSemiTransparency, boolean hasTransparency)
-	{
-		if(hasSemiTransparency)
-			return (Color.alpha(c) & 0xF0) << 8 | (Color.red(c) & 0xF0) << 4 | (Color.green(c) & 0xF0) | (Color.blue(c) >> 4);
-		if (hasTransparency)
-			return (Color.alpha(c) & 0x80) << 8 | (Color.red(c) & 0xF8) << 7 | (Color.green(c) & 0xF8) << 2 | (Color.blue(c) >> 3);
-		return (Color.red(c) & 0xF8) << 8 | (Color.green(c) & 0xFC) << 3 | (Color.blue(c) >> 3);
-	}
-
-	protected double sqr(double value)
-	{
-		return value * value;
-	}
-
 	private void find_nn(Pnnbin[] bins, int idx)
 	{
 		int nn = 0;
@@ -80,19 +65,19 @@ public class PnnQuantizer {
 			if (nerr2 >= err)
 				continue;
 			
-			double nerr = nerr2 * sqr(bins[i].ac - wa);
+			double nerr = nerr2 * BitmapUtilities.sqr(bins[i].ac - wa);
 			if (nerr >= err)
 				continue;
 			
-			nerr += nerr2 * PR * sqr(bins[i].rc - wr);
+			nerr += nerr2 * PR * BitmapUtilities.sqr(bins[i].rc - wr);
 			if (nerr >= err)
 				continue;
 
-			nerr += nerr2 * PG * sqr(bins[i].gc - wg);
+			nerr += nerr2 * PG * BitmapUtilities.sqr(bins[i].gc - wg);
 			if (nerr >= err)
 				continue;
 
-			nerr += nerr2 * PB * sqr(bins[i].bc - wb);				
+			nerr += nerr2 * PB * BitmapUtilities.sqr(bins[i].bc - wb);
 			if (nerr >= err)
 				continue;
 			err = nerr;
@@ -126,7 +111,7 @@ public class PnnQuantizer {
 		for (int pixel : pixels) {
 			// !!! Can throw gamma correction in here, but what to do about perceptual
 			// !!! nonuniformity then?
-			int index = getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
+			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
 
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
@@ -263,23 +248,23 @@ public class PnnQuantizer {
 		if (Color.alpha(c) <= alphaThreshold)
 			return k;
 
-		double mindist = SHORT_MAX;
+		double mindist = Integer.MAX_VALUE;
 		for (short i=0; i<palette.length; ++i) {
 			int c2 = palette[i];
 
-			double curdist = sqr(Color.alpha(c2) - Color.alpha(c));
+			double curdist = BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PR * sqr(Color.red(c2) - Color.red(c));
+			curdist += PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PG * sqr(Color.green(c2) - Color.green(c));
+			curdist += PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PB * sqr(Color.blue(c2) - Color.blue(c));
+			curdist += PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
 			if (curdist > mindist)
 				continue;
 
@@ -335,132 +320,11 @@ public class PnnQuantizer {
 		return (short) closest[1];
 	}
 
-	protected int[] calcDitherPixel(int c, int[] clamp, int[] rowerr, int cursor, boolean noBias)
-	{
-		int[] ditherPixel = new int[4];
-		if (noBias) {
-			ditherPixel[0] = clamp[((rowerr[cursor] + 0x1008) >> 4) + Color.red(c)];
-			ditherPixel[1] = clamp[((rowerr[cursor + 1] + 0x1008) >> 4) + Color.green(c)];
-			ditherPixel[2] = clamp[((rowerr[cursor + 2] + 0x1008) >> 4) + Color.blue(c)];
-			ditherPixel[3] = clamp[((rowerr[cursor + 3] + 0x1008) >> 4) + Color.alpha(c)];
-			return ditherPixel;
-		}
-
-		ditherPixel[0] = clamp[((rowerr[cursor] + 0x2010) >> 5) + Color.red(c)];
-		ditherPixel[1] = clamp[((rowerr[cursor + 1] + 0x1008) >> 4) + Color.green(c)];
-		ditherPixel[2] = clamp[((rowerr[cursor + 2] + 0x2010) >> 5) + Color.blue(c)];
-		ditherPixel[3] = Color.alpha(c);
-		return ditherPixel;
-	}
-
-	protected int[] quantize_image(final int[] pixels, final Integer[] palette, final boolean dither)
-	{
-		int[] qPixels = new int[pixels.length];
-		int nMaxColors = palette.length;
-
-		int pixelIndex = 0;
-		if (dither) {
-			final int DJ = 4;
-			final int BLOCK_SIZE = 256;
-			final int DITHER_MAX = 20;
-			final int err_len = (width + 2) * DJ;
-			int[] clamp = new int[DJ * BLOCK_SIZE];
-			int[] limtb = new int[2 * BLOCK_SIZE];
-
-			for (short i = 0; i < BLOCK_SIZE; ++i) {
-				clamp[i] = 0;
-				clamp[i + BLOCK_SIZE] = i;
-				clamp[i + BLOCK_SIZE * 2] = BYTE_MAX;
-				clamp[i + BLOCK_SIZE * 3] = BYTE_MAX;
-
-				limtb[i] = -DITHER_MAX;
-				limtb[i + BLOCK_SIZE] = DITHER_MAX;
-			}
-			for (short i = -DITHER_MAX; i <= DITHER_MAX; ++i)
-				limtb[i + BLOCK_SIZE] = i % 4 == 3 ? 0 : i;
-
-			boolean noBias = hasSemiTransparency || nMaxColors < 64;
-			int dir = 1;
-			int[] row0 = new int[err_len];
-			int[] row1 = new int[err_len];
-			int[] lookup = new int[65536];
-			for (int i = 0; i < height; ++i) {
-				if (dir < 0)
-					pixelIndex += width - 1;
-
-				int cursor0 = DJ, cursor1 = width * DJ;
-				row1[cursor1] = row1[cursor1 + 1] = row1[cursor1 + 2] = row1[cursor1 + 3] = 0;
-				for (int j = 0; j < width; ++j) {
-					int c = pixels[pixelIndex];
-					int[] ditherPixel = calcDitherPixel(c, clamp, row0, cursor0, noBias);
-					int r_pix = ditherPixel[0];
-					int g_pix = ditherPixel[1];
-					int b_pix = ditherPixel[2];
-					int a_pix = ditherPixel[3];
-
-					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-					if(noBias) {
-						int offset = getColorIndex(c1, hasSemiTransparency, m_transparentPixelIndex >= 0);
-						if (lookup[offset] == 0)
-							lookup[offset] = (Color.alpha(c) == 0) ? 1 : nearestColorIndex(palette, c1) + 1;
-						qPixels[pixelIndex] = lookup[offset] - 1;
-					}
-					else {
-						short qIndex = (Color.alpha(c) == 0) ? 0 : nearestColorIndex(palette, c1);
-						qPixels[pixelIndex] = palette[qIndex];
-					}
-
-					int c2 = qPixels[pixelIndex];
-					r_pix = limtb[r_pix - Color.red(c2) + BLOCK_SIZE];
-					g_pix = limtb[g_pix - Color.green(c2) + BLOCK_SIZE];
-					b_pix = limtb[b_pix - Color.blue(c2) + BLOCK_SIZE];
-					a_pix = limtb[a_pix - Color.alpha(c2) + BLOCK_SIZE];
-
-					int k = r_pix * 2;
-					row1[cursor1 - DJ] = r_pix;
-					row1[cursor1 + DJ] += (r_pix += k);
-					row1[cursor1] += (r_pix += k);
-					row0[cursor0 + DJ] += (r_pix + k);
-
-					k = g_pix * 2;
-					row1[cursor1 + 1 - DJ] = g_pix;
-					row1[cursor1 + 1 + DJ] += (g_pix += k);
-					row1[cursor1 + 1] += (g_pix += k);
-					row0[cursor0 + 1 + DJ] += (g_pix + k);
-
-					k = b_pix * 2;
-					row1[cursor1 + 2 - DJ] = b_pix;
-					row1[cursor1 + 2 + DJ] += (b_pix += k);
-					row1[cursor1 + 2] += (b_pix += k);
-					row0[cursor0 + 2 + DJ] += (b_pix + k);
-
-					k = a_pix * 2;
-					row1[cursor1 + 3 - DJ] = a_pix;
-					row1[cursor1 + 3 + DJ] += (a_pix += k);
-					row1[cursor1 + 3] += (a_pix += k);
-					row0[cursor0 + 3 + DJ] += (a_pix + k);
-
-					cursor0 += DJ;
-					cursor1 -= DJ;
-					pixelIndex += dir;
-				}
-				if ((i % 2) == 1)
-					pixelIndex += width + 1;
-
-				dir *= -1;
-				int[] temp = row0; row0 = row1; row1 = temp;
-			}
-			return qPixels;
-		}
-
-		return qPixels;
-	}
-
 	protected Ditherable getDitherFn(final boolean dither) {
 		return new Ditherable() {
 			@Override
 			public int getColorIndex(int c) {
-				return PnnQuantizer.this.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+				return BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
 			}
 
 			@Override
@@ -479,7 +343,7 @@ public class PnnQuantizer {
 		/*if(hasSemiTransparency)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
 		else if (nMaxColors < 64 && nMaxColors > 32) */
-			qPixels = quantize_image(cPixels, palette, dither);
+			qPixels = BitmapUtilities.quantize_image(width, height, cPixels, palette, ditherable, hasSemiTransparency, dither);
 		/*else if(nMaxColors <= 32)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
 		else
@@ -497,21 +361,20 @@ public class PnnQuantizer {
 	}
 
 	public Bitmap convert(int nMaxColors, boolean dither) {
-		final int[] cPixels = new int[pixels.length];
-		for (int i = cPixels.length - 1; i >= 0; --i) {
+		for (int i = pixels.length - 1; i >= 0; --i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
 			int r   = (pixel >> 16) & 0xff;
 			int g = (pixel >>  8) & 0xff;
 			int b  = (pixel      ) & 0xff;
-			cPixels[i] = Color.argb(alfa, r, g, b);
+			pixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < 0xE0) {
 				if (alfa == 0) {
 					m_transparentPixelIndex = i;
 					if(nMaxColors > 2)
-						m_transparentColor = cPixels[i];
+						m_transparentColor = pixels[i];
 					else
-						cPixels[i] = m_transparentColor;
+						pixels[i] = m_transparentColor;
 				}
 				else if(alfa > alphaThreshold)
 					hasSemiTransparency = true;
@@ -526,7 +389,7 @@ public class PnnQuantizer {
 
 		Integer[] palette;
 		if (nMaxColors > 2)
-			palette = pnnquan(cPixels, nMaxColors, (short)1);
+			palette = pnnquan(pixels, nMaxColors, (short)1);
 		else {
 			palette = new Integer[nMaxColors];
 			if (m_transparentPixelIndex >= 0) {
@@ -541,7 +404,7 @@ public class PnnQuantizer {
 
 		if (nMaxColors > 256)
 			dither = true;		
-		int[] qPixels = dither(cPixels, palette, nMaxColors, width, height, dither);
+		int[] qPixels = dither(pixels, palette, nMaxColors, width, height, dither);
 
 		if (m_transparentPixelIndex >= 0) {
 			int k = qPixels[m_transparentPixelIndex];
