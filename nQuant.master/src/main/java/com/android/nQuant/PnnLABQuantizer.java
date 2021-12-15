@@ -183,13 +183,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		bins[j].cnt = quanFn.get(bins[j].cnt);
 
+		final boolean texicab = proportional > .0275;
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
 				ratio = Math.min(1.0, proportional + weight * Math.exp(3.13));
 			else if (proportional > .1)
 				ratio = Math.min(1.0, 1.0 - weight);
-			else if(proportional > .03)
-				ratio = Math.min(1.0, weight * Math.exp(3.13));
+			else if(texicab)
+				ratio = Math.min(1.0, weight * Math.exp(1.56));
 			else
 				ratio = Math.min(1.0, proportional + weight * Math.exp(1.718));
 		}
@@ -201,7 +202,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (quan_rt < 0)
 			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, weight * Math.exp(3.13));
 
-		final boolean texicab = proportional > .025;
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
 		int[] heap = new int[bins.length + 1];
