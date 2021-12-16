@@ -7,6 +7,8 @@ import android.graphics.Color;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
+
 public class GilbertCurve {
 	
 	private static final class ErrorBox
@@ -63,8 +65,7 @@ public class GilbertCurve {
     
 	private void ditherPixel(int x, int y) {
 		final int bidx = x + y * width;
-		int pixel = pixels[bidx];
-		ErrorBox error = new ErrorBox(pixel);
+		ErrorBox error = new ErrorBox(pixels[bidx]);
 		int i = 0;
 		for(ErrorBox eb : errorq) {
 			for(int j = 0; j < eb.p.length; ++j)
@@ -72,23 +73,23 @@ public class GilbertCurve {
 			++i;
 		}
 
-		int r_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[0], 0.0));
-		int g_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[1], 0.0));
-		int b_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[2], 0.0));
-		int a_pix = (int) Math.min(Byte.MAX_VALUE, Math.max(error.p[3], 0.0));
+		int r_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[0], 0.0));
+		int g_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[1], 0.0));
+		int b_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[2], 0.0));
+		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
 		
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		if (palette.length < 64 && a_pix > 0xF0) {
 			int offset = ditherable.getColorIndex(c2);
 			if (lookup[offset] == 0)
 				lookup[offset] = (Color.alpha(c2) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2) + 1;
-			qPixels[bidx] = (short) (lookup[offset] - 1);
+			qPixels[bidx] = palette[lookup[offset] - 1];
 		}
 		else        	
-			qPixels[bidx] = ditherable.nearestColorIndex(palette, c2);
+			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2)];
 
 		errorq.poll();
-		c2 = palette[qPixels[bidx]];
+		c2 = qPixels[bidx];
 		error.p[0] = r_pix - Color.red(c2);
 		error.p[1] = g_pix - Color.green(c2);
 		error.p[2] = b_pix - Color.blue(c2);

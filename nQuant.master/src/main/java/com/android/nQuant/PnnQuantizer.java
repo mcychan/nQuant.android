@@ -340,23 +340,21 @@ public class PnnQuantizer {
 	{
 		int[] qPixels;
 		Ditherable ditherable = getDitherFn(dither);
-		/*if(hasSemiTransparency)
+		if(hasSemiTransparency)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
-		else if (nMaxColors < 64 && nMaxColors > 32) */
+		else if (nMaxColors < 64 && nMaxColors > 32)
 			qPixels = BitmapUtilities.quantize_image(width, height, cPixels, palette, ditherable, hasSemiTransparency, dither);
-		/*else if(nMaxColors <= 32)
+		else if(nMaxColors <= 32)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
 		if(!dither)
-			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);*/
+			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);
 
 		closestMap.clear();
 		nearestMap.clear();
 
-		for (int i = 0; i < qPixels.length; ++i)
-			qPixels[i] = palette[ditherable.nearestColorIndex(palette, pixels[i])];
 		return qPixels;
 	}
 

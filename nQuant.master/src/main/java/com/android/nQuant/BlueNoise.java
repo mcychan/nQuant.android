@@ -186,7 +186,7 @@ public class BlueNoise {
                 int b_pix = Color.blue(pixel);
                 int a_pix = Color.alpha(pixel);
                 
-                int c1 = palette[qPixels[x + y * width]];
+                int c1 = qPixels[x + y * width];
                 float adj = (RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) / 127.5f;
                 adj += ((x + y & 1) - 0.5) * strength / 8f;
                 adj *= weight;
@@ -197,7 +197,7 @@ public class BlueNoise {
                 a_pix = (int) Math.min(0xFF, Math.max(a_pix + (adj * (a_pix - Color.alpha(c1))), 0.0));
                 
                 c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-                qPixels[x + y * width] = ditherable.nearestColorIndex(palette, c1);
+                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1)];
             }
         }
         

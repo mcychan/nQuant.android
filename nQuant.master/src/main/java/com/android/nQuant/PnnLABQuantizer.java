@@ -189,7 +189,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				ratio = Math.min(1.0, proportional + weight * Math.exp(3.13));
 			else if (proportional > .1)
 				ratio = Math.min(1.0, 1.0 - weight);
-			else if(texicab)
+			else if(proportional > .03)
 				ratio = Math.min(1.0, weight * Math.exp(1.56));
 			else
 				ratio = Math.min(1.0, proportional + weight * Math.exp(1.718));
@@ -422,27 +422,25 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		int[] qPixels;
 		Ditherable ditherable = getDitherFn();
-		/*if(hasSemiTransparency)
+		if(hasSemiTransparency)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
-		else if (nMaxColors < 64 && nMaxColors > 32) */
+		else if (nMaxColors < 64 && nMaxColors > 32)
 			qPixels = BitmapUtilities.quantize_image(width, height, cPixels, palette, ditherable, hasSemiTransparency, dither);
-		/*else if(nMaxColors <= 32)
+		else if(nMaxColors <= 32)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
 		if(!dither) {
-			double delta = sqr(nMaxColors) / pixelMap.size();
+			double delta = BitmapUtilities.sqr(nMaxColors) / pixelMap.size();
 			float weight = delta > 0.023 ? 1.0f : (float) (37.013 * delta + 0.906);
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, weight);
-		}*/
+		}
 
 		closestMap.clear();
 		nearestMap.clear();
 		pixelMap.clear();
 
-		for (int i = 0; i < qPixels.length; ++i)
-			qPixels[i] = palette[ditherable.nearestColorIndex(palette, pixels[i])];
 		return qPixels;
 	}
 
