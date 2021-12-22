@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
-	protected double PR = .2126, PG = .7152, PB = .0722;
 	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 
@@ -123,12 +122,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
 	{
-		if(hasSemiTransparency)
-			PR = PG = PB = 1.0;
-		else if(pixels.length < BitmapUtilities.sqr(512)) {
-			PR = 0.299; PG = 0.587; PB = 0.114;
-		}
-
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
@@ -391,14 +384,15 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
+		int MAX_ERR = palette.length;
 		Random rand = new Random();
 		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3]) {
-			if(closest[2] > palette.length)
+			if(closest[2] >= MAX_ERR)
 				return nearestColorIndex(palette, c);
 			return (short) closest[0];
 		}
 		
-		if(closest[3] > palette.length)
+		if(closest[3] >= MAX_ERR)
 			return nearestColorIndex(palette, c);
 		return (short) closest[1];
 	}
