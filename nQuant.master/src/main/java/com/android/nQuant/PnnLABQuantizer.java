@@ -161,7 +161,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if((m_transparentPixelIndex >= 0 || hasSemiTransparency) && nMaxColors < 32)
 			quan_rt = -1;
 		
-		double weight = nMaxColors * 1.0 / maxbins;
+		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
 		
@@ -192,7 +192,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else if(nMaxColors > 256)
 			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 1 - 1.0 / proportional);
 		else
-			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 0.14 * Math.exp(4.679 * proportional));
+			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : .99, 1 - weight * .7);
 
 		if (quan_rt < 0)
 			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, weight * Math.exp(3.13));
