@@ -23,7 +23,7 @@ public class PnnQuantizer {
 	protected int[] pixels = null;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
-	private double PR = .2126, PG = .7152, PB = .0722;
+	protected double PR = .2126, PG = .7152, PB = .0722;
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
@@ -308,14 +308,15 @@ public class PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
+		int MAX_ERR = palette.length;
 		Random rand = new Random();
 		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3]) {
-			if(closest[2] > palette.length)
+			if(closest[2] >= MAX_ERR)
 				return nearestColorIndex(palette, c);
 			return (short) closest[0];
 		}
 		
-		if(closest[3] > palette.length)
+		if(closest[3] >= MAX_ERR)
 			return nearestColorIndex(palette, c);
 		return (short) closest[1];
 	}
