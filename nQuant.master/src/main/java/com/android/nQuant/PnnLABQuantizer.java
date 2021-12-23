@@ -177,6 +177,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		bins[j].cnt = quanFn.get(bins[j].cnt);
 
 		final boolean texicab = proportional > .0275;
+		if(weight < .025)
+			PR = PG = PB = 1;
+		
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
 				ratio = Math.min(1.0, proportional + weight * Math.exp(3.13));
