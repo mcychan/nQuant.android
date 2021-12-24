@@ -426,8 +426,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Ditherable ditherable = getDitherFn();
 		if(hasSemiTransparency)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
-		else if (nMaxColors < 64 && nMaxColors > 32)
-			qPixels = BitmapUtilities.quantize_image(width, height, cPixels, palette, ditherable, hasSemiTransparency, dither);
 		else if(nMaxColors <= 32)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
 		else
