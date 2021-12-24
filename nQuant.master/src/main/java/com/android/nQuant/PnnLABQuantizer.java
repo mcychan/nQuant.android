@@ -198,7 +198,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		else if(nMaxColors > 256)
 			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 1 - 1.0 / proportional);
 		else
-			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : .99, 1 - weight * .7);
+			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 1 - weight * .7);
 
 		if (quan_rt < 0)
 			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, weight * Math.exp(3.13));
