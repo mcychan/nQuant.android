@@ -164,7 +164,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
-		if (weight < .025) {
+		if (weight < .025 && PG < 1) {
 			double delta = 3 * (.025 + weight);
 			PG -= delta;
 			PB += delta;
