@@ -348,8 +348,6 @@ public class PnnQuantizer {
 		Ditherable ditherable = getDitherFn(dither);
 		if(hasSemiTransparency)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.25f);
-		else if (nMaxColors < 64 && nMaxColors > 32)
-			qPixels = BitmapUtilities.quantize_image(width, height, cPixels, palette, ditherable, hasSemiTransparency, dither);
 		else if(nMaxColors <= 32)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
 		else
