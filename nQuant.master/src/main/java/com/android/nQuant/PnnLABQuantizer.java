@@ -164,6 +164,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
+		if (weight < .025) {
+			double delta = 3 * (.025 + weight);
+			PG -= delta;
+			PB += delta;
+		}
 		
 		QuanFn quanFn = getQuanFn(nMaxColors, quan_rt);
 
@@ -176,12 +181,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		bins[j].cnt = quanFn.get(bins[j].cnt);
 
-		final boolean texicab = proportional > .0275;
-		if(weight < .025) {
-			double delta = 3 * (.025 + weight);
-			PG -= delta;
-			PB += delta;
-		}
+		final boolean texicab = proportional > .0275;		
 		
 		if(quan_rt != 0 && nMaxColors < 64) {
 			if (proportional > .018 && proportional < .022)
