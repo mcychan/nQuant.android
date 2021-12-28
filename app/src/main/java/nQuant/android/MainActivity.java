@@ -195,14 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
                         handler.post(() -> {
                             image.setImageBitmap(result);
-                            final int width = getScreenWidth(this);
-                            final int height = getScreenHeight(this);
-                            if(width < height)
-                                image.getLayoutParams().height = result.getHeight() * (width / result.getWidth());
-                            else
-                                image.getLayoutParams().width = result.getWidth() * (height / result.getHeight());
 
-                            image.setScaleType(ImageView.ScaleType.FIT_XY);
                             button.setText("Quit");
                             button.setEnabled(true);
 
