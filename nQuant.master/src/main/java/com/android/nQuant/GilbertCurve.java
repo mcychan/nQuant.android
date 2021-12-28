@@ -82,11 +82,11 @@ public class GilbertCurve {
 		if (palette.length < 64 && a_pix > 0xF0) {
 			int offset = ditherable.getColorIndex(c2);
 			if (lookup[offset] == 0)
-				lookup[offset] = (Color.alpha(c2) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2) + 1;
+				lookup[offset] = (Color.alpha(c2) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2, x + y) + 1;
 			qPixels[bidx] = palette[lookup[offset] - 1];
 		}
 		else        	
-			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2)];
+			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, x + y)];
 
 		errorq.poll();
 		c2 = qPixels[bidx];

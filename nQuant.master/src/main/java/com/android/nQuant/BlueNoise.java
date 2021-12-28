@@ -197,7 +197,7 @@ public class BlueNoise {
                 a_pix = (int) Math.min(0xFF, Math.max(a_pix + (adj * (a_pix - Color.alpha(c1))), 0.0));
                 
                 c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1)];
+                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1, x + y)];
             }
         }
         

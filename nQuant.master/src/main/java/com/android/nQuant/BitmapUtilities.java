@@ -86,11 +86,11 @@ public class BitmapUtilities {
                     if(noBias && a_pix > 0xF0) {
                         int offset = ditherable.getColorIndex(c1);
                         if (lookup[offset] == 0)
-                            lookup[offset] = (Color.alpha(c) == 0) ? 1 : ditherable.nearestColorIndex(palette, c1) + 1;
+                            lookup[offset] = (Color.alpha(c) == 0) ? 1 : ditherable.nearestColorIndex(palette, c1, i + j) + 1;
                         qPixels[pixelIndex] = palette[lookup[offset] - 1];
                     }
                     else {
-                        short qIndex = (Color.alpha(c) == 0) ? 0 : ditherable.nearestColorIndex(palette, c1);
+                        short qIndex = (Color.alpha(c) == 0) ? 0 : ditherable.nearestColorIndex(palette, c1, i + j);
                         qPixels[pixelIndex] = palette[qIndex];
                     }
 

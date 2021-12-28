@@ -280,7 +280,7 @@ public class PnnQuantizer {
 		return k;
 	}
 
-	protected short closestColorIndex(final Integer[] palette, final int c)
+	protected short closestColorIndex(final Integer[] palette, final int c, final int pos)
 	{
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
@@ -314,16 +314,15 @@ public class PnnQuantizer {
 		}
 
 		int MAX_ERR = palette.length;
-		Random rand = new Random();
-		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3]) {
-			if(closest[2] >= MAX_ERR)
-				return nearestColorIndex(palette, c);
-			return (short) closest[0];
-		}
-		
-		if(closest[3] >= MAX_ERR)
+		int idx = (pos + 1) % 2;
+		if (closest[3] * .67 < (closest[3] - closest[2]))
+			idx = 0;
+		else if (closest[0] > closest[1])
+			idx = pos % 2;
+
+		if(closest[idx + 2] >= MAX_ERR)
 			return nearestColorIndex(palette, c);
-		return (short) closest[1];
+		return (short) closest[idx];
 	}
 
 	protected Ditherable getDitherFn(final boolean dither) {
@@ -334,10 +333,10 @@ public class PnnQuantizer {
 			}
 
 			@Override
-			public short nearestColorIndex(Integer[] palette, int c) {
+			public short nearestColorIndex(Integer[] palette, int c, final int pos) {
 				if(dither)
 					return PnnQuantizer.this.nearestColorIndex(palette, c);
-				return PnnQuantizer.this.closestColorIndex(palette, c);
+				return PnnQuantizer.this.closestColorIndex(palette, c, pos);
 			}
 		};
 	}
