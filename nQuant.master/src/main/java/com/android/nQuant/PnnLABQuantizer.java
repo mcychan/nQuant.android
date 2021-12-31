@@ -369,7 +369,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
 
-				final double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
 				if (hasSemiTransparency)
 					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 
