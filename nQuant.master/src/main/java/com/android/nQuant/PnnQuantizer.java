@@ -23,7 +23,7 @@ public class PnnQuantizer {
 	protected int[] pixels = null;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
-	protected double PR = .2126, PG = .7152, PB = .0722;
+	protected double PR = .2126, PG = .7152, PB = .0722, PA = .25;
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
@@ -65,7 +65,7 @@ public class PnnQuantizer {
 			if (nerr2 >= err)
 				continue;
 			
-			double nerr = nerr2 * BitmapUtilities.sqr(bins[i].ac - wa);
+			double nerr = nerr2 * PA * BitmapUtilities.sqr(bins[i].ac - wa);
 			if (nerr >= err)
 				continue;
 			
@@ -257,7 +257,7 @@ public class PnnQuantizer {
 		for (short i=0; i<palette.length; ++i) {
 			int c2 = palette[i];
 
-			double curdist = BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+			double curdist = PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
@@ -294,7 +294,10 @@ public class PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
 
-				final int err = (int) (Math.abs(Color.alpha(c) - Color.alpha(c2)) + Math.abs(Color.red(c) - Color.red(c2)) + Math.abs(Color.green(c) - Color.green(c2)) + Math.abs(Color.blue(c) - Color.blue(c2)));
+				final double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				if (hasSemiTransparency)
+					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+				
 				if (err < closest[2]) {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
@@ -377,13 +380,13 @@ public class PnnQuantizer {
 					else
 						pixels[i] = m_transparentColor;
 				}
-				else if(alfa > alphaThreshold)
+				else if (alfa > alphaThreshold)
 					hasSemiTransparency = true;
 			}
 		}
 
-		if (hasSemiTransparency || nMaxColors <= 32)
-			PR = PG = PB = 1;
+		if (nMaxColors <= 32)
+			PR = PG = PB = PA = 1;
 		else if(width < 512 || height < 512) {
 			PR = 0.299; PG = 0.587; PB = 0.114;
 		}
