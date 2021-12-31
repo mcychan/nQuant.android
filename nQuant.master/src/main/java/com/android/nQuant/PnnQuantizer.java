@@ -302,11 +302,11 @@ public class PnnQuantizer {
 					closest[1] = closest[0];
 					closest[3] = closest[2];
 					closest[0] = k;
-					closest[2] = err;
+					closest[2] = (int) err;
 				}
 				else if (err < closest[3]) {
 					closest[1] = k;
-					closest[3] = err;
+					closest[3] = (int) err;
 				}
 			}
 
