@@ -23,7 +23,7 @@ public class PnnQuantizer {
 	protected int[] pixels = null;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
-	protected double PR = .2126, PG = .7152, PB = .0722, PA = .25;
+	protected double PR = .2126, PG = .7152, PB = .0722, PA = .3333;
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
