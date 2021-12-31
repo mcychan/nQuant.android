@@ -369,8 +369,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
 
-				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) +
-						PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				final double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				if (hasSemiTransparency)
+					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 
 				if (err < closest[2]) {
 					closest[1] = closest[0];
@@ -410,8 +411,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			@Override
 			public short nearestColorIndex(Integer[] palette, int c, final int pos) {
-				if(hasSemiTransparency)
-					return PnnLABQuantizer.this.nearestColorIndex(palette, c);
 				return PnnLABQuantizer.this.closestColorIndex(palette, c, pos);
 			}
 		};
