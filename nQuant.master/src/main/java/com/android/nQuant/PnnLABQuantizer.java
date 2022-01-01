@@ -196,12 +196,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				ratio = Math.min(1.0, proportional + weight * Math.exp(1.718));
 		}
 		else if(nMaxColors > 256)
-			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 1 - 1.0 / proportional);
+			ratio = Math.min(1.0, 1 - 1.0 / proportional);
 		else
-			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, 1 - weight * .7);
+			ratio = Math.min(1.0, 1 - weight * .7);
 
 		if (quan_rt < 0)
-			ratio = Math.min(m_transparentPixelIndex >= 0 ? 0.0 : 1.0, weight * Math.exp(3.13));
+			ratio = Math.min(1.0, weight * Math.exp(3.13));
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
