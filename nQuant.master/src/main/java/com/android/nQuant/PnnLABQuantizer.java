@@ -280,9 +280,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			lab1.alpha = (int) bins[i].ac;
 			lab1.L = bins[i].Lc; lab1.A = bins[i].Ac; lab1.B = bins[i].Bc;
 			palette[k] = CIELABConvertor.LAB2RGB(lab1);
-			if (m_transparentPixelIndex >= 0 && lab1.alpha == 0) {
-				Integer temp = palette[0]; palette[0] = m_transparentColor; palette[k] = temp;
-			}
 
 			if ((i = bins[i].fw) == 0)
 				break;
