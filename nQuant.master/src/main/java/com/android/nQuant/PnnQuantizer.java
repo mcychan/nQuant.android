@@ -404,7 +404,7 @@ public class PnnQuantizer {
 		}		
 
 		if (m_transparentPixelIndex >= 0) {
-			int k = qPixels[m_transparentPixelIndex];
+			int k = nearestColorIndex(palette, pixels[m_transparentPixelIndex]);
 			if (nMaxColors > 2) {
 				palette = Arrays.stream(palette).distinct().toArray(Integer[]::new);
 				palette[k] = m_transparentColor;
