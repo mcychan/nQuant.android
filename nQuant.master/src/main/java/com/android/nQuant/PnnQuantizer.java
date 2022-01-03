@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -230,11 +231,7 @@ public class PnnQuantizer {
 		Integer[] palette = new Integer[extbins > 0 ? nMaxColors : maxbins];
 		short k = 0;
 		for (int i = 0;; ++k) {
-			int alpha = (int) bins[i].ac;
-			palette[k] = Color.argb(alpha, (int) bins[i].rc, (int) bins[i].gc, (int) bins[i].bc);
-			if (m_transparentPixelIndex >= 0 && alpha == 0) {
-				Integer temp = palette[0]; palette[0] = m_transparentColor; palette[k] = temp;
-			}
+			palette[k] = Color.argb((int) bins[i].ac, (int) bins[i].rc, (int) bins[i].gc, (int) bins[i].bc);
 
 			if ((i = bins[i].fw) == 0)
 				break;
@@ -365,7 +362,7 @@ public class PnnQuantizer {
 	}
 
 	public Bitmap convert(int nMaxColors, boolean dither) {
-		for (int i = pixels.length - 1; i >= 0; --i) {
+		for (int i = 0; i < pixels.length; ++i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
 			int r   = (pixel >> 16) & 0xff;
@@ -404,20 +401,19 @@ public class PnnQuantizer {
 				palette[0] = Color.BLACK;
 				palette[1] = Color.WHITE;
 			}
-		}
-
-		if (nMaxColors > 256)
-			dither = true;		
-		int[] qPixels = dither(pixels, palette, nMaxColors, width, height, dither);
+		}		
 
 		if (m_transparentPixelIndex >= 0) {
 			int k = qPixels[m_transparentPixelIndex];
-			if (nMaxColors > 2)
+			if (nMaxColors > 2) {
+				palette = Arrays.stream(palette).distinct().toArray(Integer[]::new);
 				palette[k] = m_transparentColor;
+			}
 			else if (!palette[k].equals(m_transparentColor)) {
 				int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
 			}
 		}
+		int[] qPixels = dither(pixels, palette, nMaxColors, width, height, dither);
 
 		if (m_transparentPixelIndex >= 0)
 			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
