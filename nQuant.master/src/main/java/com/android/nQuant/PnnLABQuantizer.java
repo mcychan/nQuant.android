@@ -124,6 +124,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		Pnnbin[] bins = new Pnnbin[65536];
 
+		Lab lab0 = getLab(m_transparentColor);
 		/* Build histogram */
 		for (int pixel : pixels) {
 			// !!! Can throw gamma correction in here, but what to do about perceptual
@@ -134,10 +135,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += lab1.alpha;
-			tb.Lc += lab1.L;
-			tb.Ac += lab1.A;
-			tb.Bc += lab1.B;
+			if (Color.alpha(pixel) <= alphaThreshold) {
+				tb.Lc += lab0.L;
+				tb.Ac += lab0.A;
+				tb.Bc += lab0.B;
+			}
+			else {
+				tb.ac += lab1.alpha;
+				tb.Lc += lab1.L;
+				tb.Ac += lab1.A;
+				tb.Bc += lab1.B;
+			}
 			tb.cnt += 1.0f;
 		}
 
