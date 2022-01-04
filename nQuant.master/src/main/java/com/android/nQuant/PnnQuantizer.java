@@ -370,14 +370,12 @@ public class PnnQuantizer {
 			int b  = (pixel      ) & 0xff;
 			pixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < 0xE0) {
-				if(nMaxColors > 2) {
-					if(alfa == 0 && m_transparentPixelIndex < 0) {
-						m_transparentColor = pixels[i];
-						m_transparentPixelIndex = i;
-					}
+				if(nMaxColors > 2 && alfa == 0) {
+					m_transparentColor = pixels[i];
+					m_transparentPixelIndex = i;
 				}
 				
-				if (alfa < 0xF)
+				if (alfa <= alphaThreshold)
 					pixels[i] = m_transparentColor;
 				
 				if (alfa > alphaThreshold)
