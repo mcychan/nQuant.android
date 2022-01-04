@@ -117,18 +117,15 @@ public class PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			if (Color.alpha(pixel) <= alphaThreshold) {
-				tb.rc += Color.red(m_transparentColor);
-				tb.gc += Color.green(m_transparentColor);
-				tb.bc += Color.blue(m_transparentColor);
-			}
+			if (Color.alpha(pixel) <= alphaThreshold)
+				tb.cnt = 1.0f;
 			else {
 				tb.ac += Color.alpha(pixel);
 				tb.rc += Color.red(pixel);
 				tb.gc += Color.green(pixel);
 				tb.bc += Color.blue(pixel);
-			}
-			tb.cnt++;
+				tb.cnt++;
+			}			
 		}
 
 		/* Cluster nonempty bins at one end of array */
