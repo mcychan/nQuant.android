@@ -296,7 +296,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			return got;
 
 		short k = 0;
-		if (Color.alpha(c) <= alphaThreshold)
+		if (Color.alpha(c) <= alphaThreshold && !nearestMap.isEmpty())
 			return k;
 
 		double mindist = Integer.MAX_VALUE;
