@@ -247,7 +247,7 @@ public class PnnQuantizer {
 			return got;
 		
 		short k = 0;
-		if (Color.alpha(c) <= alphaThreshold)
+		if (Color.alpha(c) <= alphaThreshold && !nearestMap.isEmpty())
 			return k;
 
 		double mindist = Integer.MAX_VALUE;
@@ -370,15 +370,18 @@ public class PnnQuantizer {
 			int b  = (pixel      ) & 0xff;
 			pixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < 0xE0) {
-				if (alfa == 0) {
-					m_transparentPixelIndex = i;
-					if(nMaxColors > 2)
+				if(nMaxColors > 2) {
+					if(alfa == 0 && m_transparentPixelIndex < 0) {
 						m_transparentColor = pixels[i];
-					else
-						pixels[i] = m_transparentColor;
+						m_transparentPixelIndex = i;
+					}
 				}
-				else if (alfa > alphaThreshold)
-					hasSemiTransparency = true;
+				
+				if (alfa < 0xF)
+					pixels[i] = m_transparentColor;
+				
+				if (alfa > alphaThreshold)
+					hasSemiTransparency = true;				
 			}
 		}
 
@@ -405,11 +408,7 @@ public class PnnQuantizer {
 
 		if (m_transparentPixelIndex >= 0) {
 			int k = nearestColorIndex(palette, pixels[m_transparentPixelIndex]);
-			if (nMaxColors > 2) {
-				palette = Arrays.stream(palette).distinct().toArray(Integer[]::new);
-				palette[k] = m_transparentColor;
-			}
-			else if (!palette[k].equals(m_transparentColor)) {
+			if (k > 0) {
 				int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
 			}
 		}
