@@ -254,7 +254,7 @@ public class PnnQuantizer {
 			return got;
 		
 		short k = 0;
-		if (Color.alpha(c) <= alphaThreshold && !nearestMap.isEmpty())
+		if (Color.alpha(c) <= alphaThreshold)
 			return k;
 
 		double mindist = Integer.MAX_VALUE;
@@ -408,12 +408,6 @@ public class PnnQuantizer {
 			}
 		}		
 
-		if (m_transparentPixelIndex >= 0) {
-			int k = nearestColorIndex(palette, pixels[m_transparentPixelIndex]);
-			if (k > 0) {
-				int c1 = palette[0]; palette[0] = palette[1]; palette[1] = c1;
-			}
-		}
 		int[] qPixels = dither(pixels, palette, nMaxColors, width, height, dither);
 
 		if (m_transparentPixelIndex >= 0)
