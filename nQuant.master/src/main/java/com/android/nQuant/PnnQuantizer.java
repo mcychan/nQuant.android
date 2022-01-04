@@ -117,10 +117,17 @@ public class PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += Color.alpha(pixel);
-			tb.rc += Color.red(pixel);
-			tb.gc += Color.green(pixel);
-			tb.bc += Color.blue(pixel);
+			if (Color.alpha(pixel) <= alphaThreshold) {
+				tb.rc += Color.red(m_transparentColor);
+				tb.gc += Color.green(m_transparentColor);
+				tb.bc += Color.blue(m_transparentColor);
+			}
+			else {
+				tb.ac += Color.alpha(pixel);
+				tb.rc += Color.red(pixel);
+				tb.gc += Color.green(pixel);
+				tb.bc += Color.blue(pixel);
+			}
 			tb.cnt++;
 		}
 
@@ -374,9 +381,6 @@ public class PnnQuantizer {
 					m_transparentColor = pixels[i];
 					m_transparentPixelIndex = i;
 				}
-				
-				if (alfa <= alphaThreshold)
-					pixels[i] = m_transparentColor;
 				
 				if (alfa > alphaThreshold)
 					hasSemiTransparency = true;				
