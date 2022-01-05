@@ -110,24 +110,18 @@ public class PnnQuantizer {
 
 		/* Build histogram */
 		for (int pixel : pixels) {
-			// !!! Can throw gamma correction in here, but what to do about perceptual
-			// !!! nonuniformity then?
+			if (Color.alpha(pixel) <= alphaThreshold)
+				pixel = m_transparentColor;
+			
 			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
 
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			if (Color.alpha(pixel) <= alphaThreshold) {
-				tb.rc += Color.red(m_transparentColor);
-				tb.gc += Color.green(m_transparentColor);
-				tb.bc += Color.blue(m_transparentColor);
-			}
-			else {
-				tb.ac += Color.alpha(pixel);
-				tb.rc += Color.red(pixel);
-				tb.gc += Color.green(pixel);
-				tb.bc += Color.blue(pixel);
-			}
+			tb.ac += Color.alpha(pixel);
+			tb.rc += Color.red(pixel);
+			tb.gc += Color.green(pixel);
+			tb.bc += Color.blue(pixel);
 			tb.cnt++;
 		}
 
