@@ -418,14 +418,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
 		int[] qPixels;
+		double delta = BitmapUtilities.sqr(nMaxColors) / pixelMap.size();
 		Ditherable ditherable = getDitherFn();
-		if(nMaxColors <= 32 || (hasSemiTransparency && palette.length == nMaxColors))
+		if(nMaxColors <= 32 || (hasSemiTransparency && delta < 1))
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
-		if(!dither) {
-			double delta = BitmapUtilities.sqr(nMaxColors) / pixelMap.size();
+		if(!dither) {			
 			float weight = delta > 0.023 ? 1.0f : (float) (37.013 * delta + 0.906);
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, weight);
 		}
