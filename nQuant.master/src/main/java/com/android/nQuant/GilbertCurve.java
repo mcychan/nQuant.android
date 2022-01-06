@@ -56,12 +56,6 @@ public class GilbertCurve {
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
-
-	private static int sign(int x) {
-		if(x < 0)
-			return -1;
-		return (x > 0) ? 1 : 0;
-	}
     
 	private void ditherPixel(int x, int y) {
 		final int bidx = x + y * width;
@@ -107,10 +101,10 @@ public class GilbertCurve {
 	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {    	
 		int w = Math.abs(ax + ay);
 		int h = Math.abs(bx + by);
-		int dax = sign(ax);
-		int day = sign(ay);
-		int dbx = sign(bx);
-		int dby = sign(by);
+		int dax = Integer.signum(ax);
+		int day = Integer.signum(ay);
+		int dbx = Integer.signum(bx);
+		int dby = Integer.signum(by);
 
 		if (h == 1) {
 			for (int i = 0; i < w; ++i){
