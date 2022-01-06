@@ -22,6 +22,7 @@ public class PnnQuantizer {
 	protected int m_transparentPixelIndex = -1;
 	protected int width, height;
 	protected int[] pixels = null;
+	private double weight;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
 	protected double PR = .2126, PG = .7152, PB = .0722, PA = .3333;
@@ -144,7 +145,7 @@ public class PnnQuantizer {
 		if(nMaxColors < 16)
 			quan_rt = -1;
 		
-		double weight = nMaxColors * 1.0 / maxbins;
+		weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
 		if (weight < .025 && PG < 1) {
@@ -346,7 +347,7 @@ public class PnnQuantizer {
 	{
 		int[] qPixels;
 		Ditherable ditherable = getDitherFn(dither);
-		if(nMaxColors <= 32 || (hasSemiTransparency && palette.length == nMaxColors))
+		if(nMaxColors <= 32 || (hasSemiTransparency && weight < .1))
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
