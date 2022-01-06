@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
-	protected double ratio = 1.0;
+	protected double ratio = 1.0, weight;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 
 	public PnnLABQuantizer(String fname) throws IOException {
@@ -162,7 +162,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if((m_transparentPixelIndex >= 0 || hasSemiTransparency) && nMaxColors < 32)
 			quan_rt = -1;
 		
-		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
+		weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight > .0015 && weight < .002)
 			quan_rt = 2;
 		if (weight < .025 && PG < 1) {
@@ -417,15 +417,15 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
 	{
-		int[] qPixels;
-		double delta = BitmapUtilities.sqr(nMaxColors) / pixelMap.size();
+		int[] qPixels;		
 		Ditherable ditherable = getDitherFn();
-		if(nMaxColors <= 32 || (hasSemiTransparency && delta < 1))
+		if(nMaxColors <= 32 || (hasSemiTransparency && weight < .1))
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
-		if(!dither) {			
+		if(!dither) {
+			double delta = BitmapUtilities.sqr(nMaxColors) / pixelMap.size();
 			float weight = delta > 0.023 ? 1.0f : (float) (37.013 * delta + 0.906);
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, weight);
 		}
