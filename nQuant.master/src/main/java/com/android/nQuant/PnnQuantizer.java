@@ -91,18 +91,18 @@ public class PnnQuantizer {
 	
 	@FunctionalInterface
 	protected interface QuanFn {
-		float get(float cnt);
+		float get(float cnt, boolean isBlack);
 	}
 	
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (nMaxColors < 64)
-				return cnt -> (float) Math.sqrt(cnt);
-			return cnt -> (int) Math.sqrt(cnt);
+				return (cnt, isBlack) -> (float) Math.sqrt(cnt);
+			return (cnt, isBlack) -> (int) Math.sqrt(cnt);
 		}
 		if (quan_rt < 0)
-			return cnt -> (int) Math.cbrt(cnt);
-		return cnt -> cnt;
+			return (cnt, isBlack) -> (int) Math.cbrt(cnt);
+		return (cnt, isBlack) -> cnt;
 	}
 
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
@@ -161,9 +161,9 @@ public class PnnQuantizer {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 			
-			bins[j].cnt = quanFn.get(bins[j].cnt);
+			bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
 		}
-		bins[j].cnt = quanFn.get(bins[j].cnt);
+		bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
@@ -370,8 +370,9 @@ public class PnnQuantizer {
 			int b  = (pixel      ) & 0xff;
 			pixels[i] = Color.argb(alfa, r, g, b);
 			if (alfa < 0xE0) {
-				if(nMaxColors > 2 && alfa == 0) {
-					m_transparentColor = pixels[i];
+				if(alfa == 0) {
+					if(nMaxColors > 2)
+						m_transparentColor = pixels[i];
 					m_transparentPixelIndex = i;
 				}
 				
