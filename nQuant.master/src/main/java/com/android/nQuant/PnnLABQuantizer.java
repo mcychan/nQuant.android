@@ -111,12 +111,20 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (quan_rt > 1)
-				return cnt -> (int) Math.pow(cnt, 0.75);
+				return (cnt, isBlack) -> (int) Math.pow(cnt, 0.75);
 			if (nMaxColors < 64)
-				return cnt -> (int) Math.sqrt(cnt);
-			return cnt -> (float) Math.sqrt(cnt);
+				return (cnt, isBlack) -> {
+					if(isBlack)
+						return (int) Math.pow(cnt, 0.75);
+					return (int) Math.sqrt(cnt);					
+				};
+			return (cnt, isBlack) -> {
+				if(isBlack)
+					return (float) Math.pow(cnt, 0.75);
+				return (float) Math.sqrt(cnt);				
+			};
 		}
-		return cnt -> cnt;
+		return (cnt, index) -> cnt;
 	}
 
 	@Override
@@ -178,9 +186,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 
-			bins[j].cnt = quanFn.get(bins[j].cnt);
+			bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
 		}
-		bins[j].cnt = quanFn.get(bins[j].cnt);
+		bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
 
 		final boolean texicab = proportional > .0275;		
 		
