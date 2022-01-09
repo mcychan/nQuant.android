@@ -315,7 +315,7 @@ public class PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length;
+		int MAX_ERR = palette.length << 2;
 		int idx = (pos + 1) % 2;
 		if (closest[3] * .67 < (closest[3] - closest[2]))
 			idx = 0;
