@@ -397,7 +397,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length;
+		int MAX_ERR = palette.length << 2;
 		Random rand = new Random();
 		int idx = 1;
 		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
