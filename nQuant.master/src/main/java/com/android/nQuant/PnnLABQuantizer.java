@@ -179,6 +179,21 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			PB += delta;
 		}
 		
+		if(pixelMap.size() <= nMaxColors) {
+			/* Fill palette */
+			Integer[] palette = new Integer[pixelMap.size()];
+			int k = 0;
+			for (Integer pixel : pixelMap.keySet()) {
+				palette[k++] = pixel;
+
+				if(Color.alpha(pixel) == 0) {
+					palette[k - 1] = palette[0]; palette[0] = pixel;
+				}
+			}
+
+			return palette;
+		}
+		
 		QuanFn quanFn = getQuanFn(nMaxColors, quan_rt);
 
 		int j = 0;
