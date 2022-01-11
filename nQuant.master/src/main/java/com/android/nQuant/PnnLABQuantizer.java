@@ -186,7 +186,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (Integer pixel : pixelMap.keySet()) {
 				palette[k++] = pixel;
 
-				if(Color.alpha(pixel) == 0) {
+				if(k > 1 && Color.alpha(pixel) == 0) {
 					palette[k - 1] = palette[0]; palette[0] = pixel;
 				}
 			}
@@ -313,7 +313,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	}
 
 	@Override
-	protected short nearestColorIndex(final Integer[] palette, final int c)
+	protected short nearestColorIndex(final Integer[] palette, int c)
 	{
 		Short got = nearestMap.get(c);
 		if (got != null)
@@ -321,7 +321,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
-			return k;
+			c = m_transparentColor;
 
 		double mindist = Integer.MAX_VALUE;
 		Lab lab1 = getLab(c);
@@ -376,11 +376,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	}
 
 	@Override
-	protected short closestColorIndex(final Integer[] palette, final int c, final int pos)
+	protected short closestColorIndex(final Integer[] palette, int c, final int pos)
 	{
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
-			return k;
+			c = m_transparentColor;
 		
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
