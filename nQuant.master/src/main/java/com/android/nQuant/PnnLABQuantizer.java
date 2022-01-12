@@ -128,8 +128,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	}
 
 	@Override
-	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
+	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
 	{
+		short quan_rt = (short) 0;
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
