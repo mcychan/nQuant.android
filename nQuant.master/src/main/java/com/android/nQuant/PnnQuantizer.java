@@ -22,7 +22,6 @@ public class PnnQuantizer {
 	protected int m_transparentPixelIndex = -1;
 	protected int width, height;
 	protected int[] pixels = null;
-	private double weight;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
 	protected double PR = .2126, PG = .7152, PB = .0722, PA = .3333;
@@ -105,8 +104,9 @@ public class PnnQuantizer {
 		return (cnt, isBlack) -> cnt;
 	}
 
-	protected Integer[] pnnquan(final int[] pixels, int nMaxColors, short quan_rt)
+	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
 	{
+		short quan_rt = (short) 1;
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
@@ -145,7 +145,7 @@ public class PnnQuantizer {
 		if(nMaxColors < 16)
 			quan_rt = -1;
 		
-		weight = nMaxColors * 1.0 / maxbins;
+		double weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
 		if (weight < .025 && PG < 1) {
@@ -283,7 +283,7 @@ public class PnnQuantizer {
 	{
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
-			c = m_transparentColor;
+			return nearestColorIndex(palette, c);
 		
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
@@ -343,12 +343,12 @@ public class PnnQuantizer {
 		};
 	}
 
-	protected int[] dither(final int[] cPixels, Integer[] palette, int nMaxColors, int width, int height, boolean dither)
+	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
 	{
 		int[] qPixels;
 		Ditherable ditherable = getDitherFn(dither);
-		if(nMaxColors <= 32 || (hasSemiTransparency && weight < .3))
-			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, nMaxColors > 2 ? 1.8f : 1.5f);
+		if(palette.length <= 32 || (hasSemiTransparency && (semiTransCount * 1.0 / cPixels.length) > .3))
+			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, palette.length > 2 ? 1.8f : 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
@@ -362,6 +362,7 @@ public class PnnQuantizer {
 	}
 
 	public Bitmap convert(int nMaxColors, boolean dither) {
+		int semiTransCount = 0;
 		for (int i = 0; i < pixels.length; ++i) {
 			int pixel = pixels[i];
 			int alfa = (pixel >> 24) & 0xff;
@@ -378,9 +379,11 @@ public class PnnQuantizer {
 						pixels[i] = m_transparentColor;
 				}
 				else if (alfa > alphaThreshold)
-					hasSemiTransparency = true;
+					++semiTransCount;
 			}
 		}
+		
+		hasSemiTransparency = semiTransCount > 0;
 
 		if (nMaxColors <= 32)
 			PR = PG = PB = PA = 1;
@@ -390,7 +393,7 @@ public class PnnQuantizer {
 
 		Integer[] palette;
 		if (nMaxColors > 2)
-			palette = pnnquan(pixels, nMaxColors, (short)1);
+			palette = pnnquan(pixels, nMaxColors);
 		else {
 			palette = new Integer[nMaxColors];
 			if (m_transparentPixelIndex >= 0) {
@@ -403,7 +406,7 @@ public class PnnQuantizer {
 			}
 		}		
 
-		int[] qPixels = dither(pixels, palette, nMaxColors, width, height, dither);
+		int[] qPixels = dither(pixels, palette, semiTransCount, width, height, dither);
 
 		if (m_transparentPixelIndex >= 0)
 			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
