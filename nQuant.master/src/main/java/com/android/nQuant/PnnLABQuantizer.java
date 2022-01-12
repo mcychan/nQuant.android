@@ -53,8 +53,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double alphaDiff = hasSemiTransparency ? (lab2.alpha - lab1.alpha) / Math.exp(1.5) : 0;
-			double nerr = nerr2 * BitmapUtilities.sqr(alphaDiff);
+			double alphaDiff = hasSemiTransparency ? BitmapUtilities.sqr(lab2.alpha - lab1.alpha) / Math.exp(1.5) : 0;
+			double nerr = nerr2 * alphaDiff;
 			if (nerr >= err)
 				continue;
 
@@ -380,7 +380,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
-			c = m_transparentColor;
+			return nearestColorIndex(palette, c);
 		
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
