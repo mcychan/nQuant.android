@@ -415,7 +415,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		int MAX_ERR = palette.length << 2;
 		if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
-			MAX_ERR = Math.min(palette.length, MAX_ERR);
+			MAX_ERR = palette.length >> 2;
 		
 		Random rand = new Random();
 		int idx = 1;
