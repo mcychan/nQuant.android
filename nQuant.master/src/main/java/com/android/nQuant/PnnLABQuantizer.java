@@ -413,9 +413,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length << 2;
+		int MAX_ERR = palette.length << 1;
 		if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
-			MAX_ERR = palette.length >> 2;
+			MAX_ERR = palette.length >> 1;
 		
 		Random rand = new Random();
 		int idx = 1;
@@ -446,7 +446,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		int[] qPixels;		
 		Ditherable ditherable = getDitherFn();
-		if(palette.length <= 32 || (hasSemiTransparency && (semiTransCount * 1.0 / cPixels.length) > .3))
+		if(palette.length <= 32 || (semiTransCount * 1.0 / cPixels.length) > .3)
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
