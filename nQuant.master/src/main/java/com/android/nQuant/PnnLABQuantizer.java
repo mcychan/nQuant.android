@@ -329,7 +329,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		for (short i=0; i<palette.length; ++i) {
 			int c2 = palette[i];			
 
-			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(0.75) : 0;
+			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.5) : 0;
 			if (curdist > mindist)
 				continue;
 
@@ -339,7 +339,18 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				if(hasSemiTransparency)
 					curdist += BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			}
-			else if (palette.length > 32 || hasSemiTransparency) {
+			else if (hasSemiTransparency) {				
+				curdist += BitmapUtilities.sqr(lab2.L - lab1.L);
+				if (curdist > mindist)
+					continue;
+				
+				curdist += BitmapUtilities.sqr(lab2.A - lab1.A);
+				if (curdist > mindist)
+					continue;
+				
+				curdist += BitmapUtilities.sqr(lab2.B - lab1.B);
+			}
+			else if (palette.length > 32) {
 				curdist += Math.abs(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
