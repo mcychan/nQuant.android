@@ -141,7 +141,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += Math.max(alphaThreshold >> 1, lab1.alpha);
+			tb.ac += Math.max(alphaThreshold + 1, lab1.alpha);
 			tb.Lc += lab1.L;
 			tb.Ac += lab1.A;
 			tb.Bc += lab1.B;
