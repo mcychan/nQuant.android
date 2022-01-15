@@ -116,7 +116,7 @@ public class PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += Math.max(alphaThreshold >> 1, Color.alpha(pixel));
+			tb.ac += Math.max(alphaThreshold + 1, Color.alpha(pixel));
 			tb.rc += Color.red(pixel);
 			tb.gc += Color.green(pixel);
 			tb.bc += Color.blue(pixel);
