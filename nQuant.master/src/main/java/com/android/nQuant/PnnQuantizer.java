@@ -149,6 +149,8 @@ public class PnnQuantizer {
 			double delta = 3 * (.025 + weight);
 			PG -= delta;
 			PB += delta;
+			if (nMaxColors >= 64)
+				quan_rt = 0;
 		}
 		
 		QuanFn quanFn = getQuanFn(nMaxColors, quan_rt);
