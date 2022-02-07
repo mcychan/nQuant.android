@@ -110,13 +110,16 @@ public class PnnQuantizer {
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
-		for (int pixel : pixels) {			
+		for (int pixel : pixels) {
+			if (Color.alpha(pixel) <= alphaThreshold)
+				pixel = m_transparentColor;
+			
 			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
 
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += Math.max(alphaThreshold + 1, Color.alpha(pixel));
+			tb.ac += Color.alpha(pixel);
 			tb.rc += Color.red(pixel);
 			tb.gc += Color.green(pixel);
 			tb.bc += Color.blue(pixel);
