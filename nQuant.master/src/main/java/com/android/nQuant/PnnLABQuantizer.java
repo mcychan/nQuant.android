@@ -134,14 +134,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
-		for (int pixel : pixels) {			
+		for (int pixel : pixels) {
+			if (Color.alpha(pixel) <= alphaThreshold)
+				pixel = m_transparentColor;
+			
 			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
 
 			Lab lab1 = getLab(pixel);
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += Math.max(alphaThreshold + 1, lab1.alpha);
+			tb.ac += lab1.alpha;
 			tb.Lc += lab1.L;
 			tb.Ac += lab1.A;
 			tb.Bc += lab1.B;
