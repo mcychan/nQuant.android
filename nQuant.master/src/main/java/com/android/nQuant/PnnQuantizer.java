@@ -349,7 +349,7 @@ public class PnnQuantizer {
 	{
 		int[] qPixels;
 		Ditherable ditherable = getDitherFn(dither);
-		if(palette.length <= 32 || (hasSemiTransparency && (semiTransCount * 1.0 / cPixels.length) > .3))
+		if(palette.length <= 32 || (hasSemiTransparency && (semiTransCount * 1.0 / cPixels.length) > .099))
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, palette.length > 2 ? 1.8f : 1.5f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
