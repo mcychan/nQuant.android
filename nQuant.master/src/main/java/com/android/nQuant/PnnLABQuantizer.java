@@ -14,7 +14,7 @@ import java.util.Random;
 public class PnnLABQuantizer extends PnnQuantizer {
 	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
-	private float[] saliencies;
+	private double[] saliencies;
 
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
@@ -128,17 +128,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		return (cnt, index) -> cnt;
 	}
 	
-	private float getSaliency(double L)
+	private double getSaliency(double L)
 	{
-		float saliencyBase = 0.1f;
-		return saliencyBase + (1 - saliencyBase) * L / 255.0f;
+		double saliencyBase = 0.1;
+		return saliencyBase + (1 - saliencyBase) * L / 255.0;
 	}
 
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
 	{
 		short quan_rt = (short) 0;
-		saliencies = new float[pixels.length];
+		saliencies = new double[pixels.length];
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
