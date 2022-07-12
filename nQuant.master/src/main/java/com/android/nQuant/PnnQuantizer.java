@@ -339,7 +339,7 @@ public class PnnQuantizer {
 			@Override
 			public short nearestColorIndex(Integer[] palette, int c, final int pos) {
 				if(dither)
-					return PnnQuantizer.this.nearestColorIndex(palette, c);
+					return PnnQuantizer.this.nearestColorIndex(palette, c, pos);
 				return PnnQuantizer.this.closestColorIndex(palette, c, pos);
 			}
 		};
