@@ -244,7 +244,7 @@ public class PnnQuantizer {
 		return palette;
 	}
 
-	protected short nearestColorIndex(final Integer[] palette, int c)
+	protected short nearestColorIndex(final Integer[] palette, int c, final int pos)
 	{
 		Short got = nearestMap.get(c);
 		if (got != null)
@@ -285,7 +285,7 @@ public class PnnQuantizer {
 	{
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
-			return nearestColorIndex(palette, c);
+			return nearestColorIndex(palette, c, pos);
 		
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
@@ -325,7 +325,7 @@ public class PnnQuantizer {
 			idx = pos % 2;
 
 		if(closest[idx + 2] >= MAX_ERR)
-			return nearestColorIndex(palette, c);
+			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
 
