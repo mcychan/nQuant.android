@@ -128,7 +128,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		return (cnt, index) -> cnt;
 	}
 	
-	private float getSaliency(float L)
+	private float getSaliency(double L)
 	{
 		float saliencyBase = 0.1f;
 		return saliencyBase + (1 - saliencyBase) * L / 255.0f;
@@ -142,7 +142,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Pnnbin[] bins = new Pnnbin[65536];
 
 		/* Build histogram */
-		for (int pixel : pixels) {
+		for (int i = 0; i < pixels.length; ++i) {
+			int pixel = pixels[i];
 			if (Color.alpha(pixel) <= alphaThreshold)
 				pixel = m_transparentColor;
 			
