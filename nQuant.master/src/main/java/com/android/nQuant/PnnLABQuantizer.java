@@ -482,7 +482,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		int[] qPixels;		
 		Ditherable ditherable = getDitherFn();
 		if(palette.length <= 32 || (semiTransCount * 1.0 / cPixels.length) > .099)
-			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.5f);
+			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, 1.0f);
 		else
 			qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
 
