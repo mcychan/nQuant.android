@@ -127,6 +127,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		return (cnt, index) -> cnt;
 	}
+	
+	private float getSaliency(float L)
+	{
+		float saliencyBase = 0.1f;
+		return saliencyBase + (1 - saliencyBase) * L / 255.0f;
+	}
 
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
