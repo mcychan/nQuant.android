@@ -351,11 +351,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				if(hasSemiTransparency)
 					curdist += BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			}
-			else if (hasSemiTransparency) {
-				curdist += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
-				if (curdist > mindist)
-					continue;
-				
+			else if (hasSemiTransparency) {				
 				curdist += BitmapUtilities.sqr(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
@@ -366,22 +362,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				
 				curdist += BitmapUtilities.sqr(lab2.B - lab1.B);
 			}
-			else if (palette.length > 32) {
-				curdist += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
-				if (curdist > mindist)
-					continue;
-				
+			else if (palette.length > 32) {				
 				curdist += Math.abs(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
 
 				curdist += Math.sqrt(BitmapUtilities.sqr(lab2.A - lab1.A) + BitmapUtilities.sqr(lab2.B - lab1.B));
 			}
-			else {
-				curdist += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
-				if (curdist > mindist)
-					continue;
-				
+			else {				
 				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 				curdist += BitmapUtilities.sqr(deltaL_prime_div_k_L_S_L);
 				if (curdist > mindist)
@@ -425,8 +413,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
+				Lab lab2 = getLab(c2);
 
 				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				err += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
 				if (hasSemiTransparency)
 					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 
