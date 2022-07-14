@@ -412,12 +412,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 
 			for (; k < palette.length; ++k) {
-				int c2 = palette[k];
-				Lab lab2 = getLab(c2);
+				int c2 = palette[k];				
 
 				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
-				if(saliencies != null)
+				if(saliencies != null) {
+					Lab lab2 = getLab(c2);
 					err += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
+				}
 				if (hasSemiTransparency)
 					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 
