@@ -46,7 +46,7 @@ public class GilbertCurve {
 	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float divisor)
 	{
 		this.divisor = (divisor < 3) ? 0.4f + divisor - palette.length / 64.0f : divisor;
-    		if (divisor < 3 && this.divisor > divisor)
+    		if (divisor < 3 && this.divisor > 1.5f)
 			this.divisor = divisor;
 		this.width = width;
 		this.height = height;
