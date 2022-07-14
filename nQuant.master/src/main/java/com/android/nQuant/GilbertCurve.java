@@ -28,7 +28,7 @@ public class GilbertCurve {
 		}
 	}
 	
-	private final float divisor;
+	private float divisor;
 	private final int width;
 	private final int height;
 	private final int[] pixels;
