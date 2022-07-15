@@ -14,7 +14,6 @@ import java.util.Random;
 public class PnnLABQuantizer extends PnnQuantizer {
 	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
-	private double[] saliencies;
 
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
@@ -127,12 +126,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		return (cnt, index) -> cnt;
 	}
-	
-	private double getSaliency(double L)
-	{
-		double saliencyBase = 0.1;
-		return saliencyBase + (1 - saliencyBase) * L / 255.0;
-	}
 
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
@@ -150,7 +143,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
 
 			Lab lab1 = getLab(pixel);
-			saliencies[i] = getSaliency(lab1.L);
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
@@ -415,10 +407,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				int c2 = palette[k];				
 
 				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
-				if(saliencies != null) {
-					Lab lab2 = getLab(c2);
-					err += BitmapUtilities.sqr(getSaliency(lab2.L) - saliencies[pos]);
-				}
 				if (hasSemiTransparency)
 					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 
