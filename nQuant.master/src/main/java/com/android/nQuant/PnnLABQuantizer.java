@@ -249,7 +249,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		if (quan_rt > 0 && nMaxColors < 64 && proportional > .035 && proportional < .1) {
 			int dir = proportional > .04 ? 1 : -1;
-			ratio = Math.min(1.0, proportional + dir * weight * Math.exp(1.632));
+			ratio = Math.min(1.0, proportional + dir * weight * Math.exp(1.872));
 		}
 
 		/* Merge bins which increase error the least */
