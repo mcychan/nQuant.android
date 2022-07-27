@@ -18,6 +18,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
 	}
+	
+	private static final float[][] coeffs = new float[][] {
+		{0.299f, 0.587f, 0.114f},
+		{-0.168735f, -0.331264f, 0.5f},
+		{0.5f, -0.418688f, -0.081312f}
+	};
 
 	private static final class Pnnbin {
 		float ac = 0, Lc = 0, Ac = 0, Bc = 0, err = 0;
@@ -406,9 +412,15 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];				
 
-				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
-				if (hasSemiTransparency)
-					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+				double err = 0.0;
+				if (hasSemiTransparency) {
+					err = PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+					err += PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				}
+				else {
+					for (short i = 0; i < coeffs.length; ++i)
+						err += BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c))) + BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c))) + BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
+				}
 
 				if (err < closest[2]) {
 					closest[1] = closest[0];
