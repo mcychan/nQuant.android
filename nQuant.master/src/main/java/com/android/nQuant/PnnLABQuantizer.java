@@ -441,9 +441,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 						if (err >= closest[3])
 							break;
 					}
-					
-					if (err >= closest[3])
-						continue;
 				}
 
 				if (err < closest[2]) {
