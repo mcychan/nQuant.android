@@ -412,32 +412,29 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];				
 
-				double err = 0.0;
-				if(hasSemiTransparency || pos % 2 == 0) {
-					if(hasSemiTransparency) {
-						err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
-						if (err >= closest[3])
-							continue;
-					}
-					err += PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
-					
-					if (err >= closest[3])
-						continue;
-					err += PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
-					
-					if (err >= closest[3])
-						continue;
-					err += PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
-				}
+				double err = PR * (1 - ratio) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));					
+				if (err >= closest[3])
+					continue;
+				
+				err += PG * (1 - ratio) * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));					
+				if (err >= closest[3])
+					continue;
+				
+				err += PB * (1 - ratio) * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				if (err >= closest[3])
+					continue;
+				
+				if(hasSemiTransparency)
+					err += PA * (1 - ratio) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));						
 				else {
 					for (short i = 0; i < coeffs.length; ++i) {
-						err += BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
+						err += ratio * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
 						if (err >= closest[3])
 							break;
-						err += BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
+						err += ratio * BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
 						if (err >= closest[3])
 							break;
-						err += BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
+						err += ratio * BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
 						if (err >= closest[3])
 							break;
 					}
