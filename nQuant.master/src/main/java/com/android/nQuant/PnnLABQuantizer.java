@@ -458,9 +458,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length << 1;
-		if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
-			MAX_ERR = palette.length >> 1;
+		int MAX_ERR = palette.length;
+		if(hasSemiTransparency && palette.length > 32) {
+			MAX_ERR = palette.length << 1;
+			if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
+				MAX_ERR = palette.length >> 1;
+		}
 		
 		Random rand = new Random();
 		int idx = 1;
