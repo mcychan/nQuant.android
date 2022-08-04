@@ -21,8 +21,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	
 	private static final float[][] coeffs = new float[][] {
 		{0.299f, 0.587f, 0.114f},
-		{-0.168735f, -0.331264f, 0.5f},
-		{0.5f, -0.418688f, -0.081312f}
+		{-0.14713f, -0.28886f, 0.436f},
+		{0.615f, -0.51499f, -0.10001f}
 	};
 
 	private static final class Pnnbin {
