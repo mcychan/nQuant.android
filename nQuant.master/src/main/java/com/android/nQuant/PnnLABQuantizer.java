@@ -408,6 +408,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest == null) {
 			closest = new int[4];
 			closest[2] = closest[3] = Integer.MAX_VALUE;
+			
+			int channel = coeffs.length;
+			if((pos / width) % 2 > 0 || (pos % width) % 2 > 0)
+				channel = 1;
 
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];				
@@ -427,7 +431,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				if(hasSemiTransparency)
 					err += PA * (1 - ratio) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));						
 				else {
-					for (short i = 0; i < coeffs.length; ++i) {
+					for (short i = 0; i < channel; ++i) {
 						err += ratio * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
 						if (err >= closest[3])
 							break;
