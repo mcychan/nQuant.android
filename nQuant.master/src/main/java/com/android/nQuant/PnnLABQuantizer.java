@@ -410,7 +410,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
 			int start = 0;
-			if((pos / width) % 2 > 0 || (pos % width) % 2 > 0)
+			if((pos % 5) > 0)
 				start = 1;
 
 			for (; k < palette.length; ++k) {
