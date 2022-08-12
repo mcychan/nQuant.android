@@ -14,6 +14,8 @@ import java.util.Random;
 public class PnnLABQuantizer extends PnnQuantizer {
 	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
+	
+	private static Random random = new Random();
 
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
@@ -463,15 +465,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 
 		int MAX_ERR = palette.length;
-		if(hasSemiTransparency && palette.length > 32) {
-			MAX_ERR = palette.length << 1;
+		if(hasSemiTransparency && MAX_ERR > 32) {
+			MAX_ERR <<= 1;
 			if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
-				MAX_ERR = palette.length >> 1;
+				MAX_ERR >>= 1;
 		}
 		
-		Random rand = new Random();
 		int idx = 1;
-		if (closest[2] == 0 || (rand.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
+		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
 		if(closest[idx + 2] >= MAX_ERR)
