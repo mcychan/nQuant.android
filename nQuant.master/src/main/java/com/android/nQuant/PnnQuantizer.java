@@ -24,7 +24,7 @@ public class PnnQuantizer {
 	protected int[] pixels = null;
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
-	protected double PR = .2126, PG = .7152, PB = .0722, PA = .3333;
+	protected double PR = 0.299, PG = 0.587, PB = 0.114, PA = .3333;
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
@@ -389,9 +389,6 @@ public class PnnQuantizer {
 
 		if (nMaxColors <= 32)
 			PR = PG = PB = PA = 1;
-		else if(width < 512 || height < 512) {
-			PR = 0.299; PG = 0.587; PB = 0.114;
-		}
 
 		Integer[] palette;
 		if (nMaxColors > 2)
