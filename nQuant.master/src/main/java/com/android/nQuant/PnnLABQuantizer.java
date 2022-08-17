@@ -412,7 +412,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
 			int start = 0;
-			if(BlueNoise.RAW_BLUE_NOISE[pos & 63] > 6)
+			if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > 0)
 				start = 1;
 
 			for (; k < palette.length; ++k) {
