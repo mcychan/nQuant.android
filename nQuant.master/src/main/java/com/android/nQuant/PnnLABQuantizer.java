@@ -435,18 +435,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					err += PA * (1 - delta) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 					start = 1;
 				}
-				else {
-					for (int i = start; i < coeffs.length; ++i) {
-						err += delta * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
-						if (err >= closest[3])
-							break;
-						err += delta * BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
-						if (err >= closest[3])
-							break;
-						err += delta * BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
-						if (err >= closest[3])
-							break;
-					}
+				
+				for (int i = start; i < coeffs.length; ++i) {
+					err += delta * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
+					if (err >= closest[3])
+						break;
+					err += delta * BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
+					if (err >= closest[3])
+						break;
+					err += delta * BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
+					if (err >= closest[3])
+						break;
 				}
 
 				if (err < closest[2]) {
