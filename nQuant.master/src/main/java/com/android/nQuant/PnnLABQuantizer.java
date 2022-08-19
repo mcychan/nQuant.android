@@ -411,6 +411,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest = new int[4];
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
+			double delta = hasSemiTransparency ? 0.5 : ratio;
 			int start = 0;
 			if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > 0)
 				start = 1;
@@ -418,29 +419,31 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];				
 
-				double err = PR * (1 - ratio) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));					
+				double err = PR * (1 - delta) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));					
 				if (err >= closest[3])
 					continue;
 				
-				err += PG * (1 - ratio) * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));					
+				err += PG * (1 - delta) * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));					
 				if (err >= closest[3])
 					continue;
 				
-				err += PB * (1 - ratio) * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				err += PB * (1 - delta) * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
 				if (err >= closest[3])
 					continue;
 				
-				if(hasSemiTransparency)
-					err += PA * (1 - ratio) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));						
+				if(hasSemiTransparency) {
+					err += PA * (1 - delta) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+					start = 1;
+				}
 				else {
 					for (int i = start; i < coeffs.length; ++i) {
-						err += ratio * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
+						err += delta * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
 						if (err >= closest[3])
 							break;
-						err += ratio * BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
+						err += delta * BitmapUtilities.sqr(coeffs[i][1] * (Color.green(c2) - Color.green(c)));
 						if (err >= closest[3])
 							break;
-						err += ratio * BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
+						err += delta * BitmapUtilities.sqr(coeffs[i][2] * (Color.blue(c2) - Color.blue(c)));
 						if (err >= closest[3])
 							break;
 					}
@@ -475,7 +478,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
-		if(closest[idx + 2] >= MAX_ERR)
+		if(!hasSemiTransparency && closest[idx + 2] >= MAX_ERR)
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
