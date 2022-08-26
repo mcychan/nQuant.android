@@ -1,7 +1,7 @@
 package com.android.nQuant;
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev
-Copyright (c) 2018-2021 Miller Cy Chan
+Copyright (c) 2018-2022 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
 import android.graphics.Bitmap;
@@ -25,6 +25,13 @@ public class PnnQuantizer {
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
 	protected double PR = 0.299, PG = 0.587, PB = 0.114, PA = .3333;
+	private double ratio = .5;
+	private static final float[][] coeffs = new float[][] {
+		{0.299f, 0.587f, 0.114f},
+		{-0.14713f, -0.28886f, 0.436f},
+		{0.615f, -0.51499f, -0.10001f}
+	};
+	
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
@@ -61,26 +68,50 @@ public class PnnQuantizer {
 		double wr = bin1.rc;
 		double wg = bin1.gc;
 		double wb = bin1.bc;
+		
+		int start = 0;
+		if(BlueNoise.RAW_BLUE_NOISE[idx & 4095] > -77)
+			start = 1;
+		
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
 			double n2 = bins[i].cnt, nerr2 = (n1 * n2) / (n1 + n2);
 			if (nerr2 >= err)
 				continue;
 			
-			double nerr = nerr2 * PA * BitmapUtilities.sqr(bins[i].ac - wa);
+			double nerr = 0.0;
+			if(hasSemiTransparency) {
+				start = 1;
+				nerr += nerr2 * (1 - ratio) * PA * BitmapUtilities.sqr(bins[i].ac - wa);
+				if (nerr >= err)
+					continue;
+			}
+			
+			nerr += nerr2 * (1 - ratio) * PR * BitmapUtilities.sqr(bins[i].rc - wr);
+			if (nerr >= err)
+				continue;
+
+			nerr += nerr2 * (1 - ratio) * PG * BitmapUtilities.sqr(bins[i].gc - wg);
+			if (nerr >= err)
+				continue;
+
+			nerr += nerr2 * (1 - ratio) * PB * BitmapUtilities.sqr(bins[i].bc - wb);				
 			if (nerr >= err)
 				continue;
 			
-			nerr += nerr2 * PR * BitmapUtilities.sqr(bins[i].rc - wr);
-			if (nerr >= err)
-				continue;
-
-			nerr += nerr2 * PG * BitmapUtilities.sqr(bins[i].gc - wg);
-			if (nerr >= err)
-				continue;
-
-			nerr += nerr2 * PB * BitmapUtilities.sqr(bins[i].bc - wb);
-			if (nerr >= err)
-				continue;
+			for (int j = start; j < coeffs.length; ++j) {
+				nerr += nerr2 * ratio * BitmapUtilities.sqr(coeffs[j][0] * (bins[i].rc - wr));
+				if (nerr >= err)
+					break;
+				
+				nerr += nerr2 * ratio * BitmapUtilities.sqr(coeffs[j][1] * (bins[i].gc - wg));
+				if (nerr >= err)
+					break;
+				
+				nerr += nerr2 * ratio * BitmapUtilities.sqr(coeffs[j][2] * (bins[i].bc - wb));
+				if (nerr >= err)
+					break;
+			}
+			
 			err = nerr;
 			nn = i;
 		}
@@ -295,7 +326,18 @@ public class PnnQuantizer {
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
 
-				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c)) + PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c)) + PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
+				if (err >= closest[3])
+					continue;
+				
+				err += PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
+				if (err >= closest[3])
+					continue;
+				
+				err += PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				if (err >= closest[3])
+					continue;
+				
 				if (hasSemiTransparency)
 					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 				
