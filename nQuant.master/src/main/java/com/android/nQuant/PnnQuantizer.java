@@ -179,7 +179,7 @@ public class PnnQuantizer {
 		double weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
-		if (weight < .025 && PG < 1) {
+		if (weight < .025 && nMaxColors > 32) {
 			double delta = 3 * (.025 + weight);
 			PG -= delta;
 			PB += delta;
@@ -428,6 +428,8 @@ public class PnnQuantizer {
 		}
 		
 		hasSemiTransparency = semiTransCount > 0;
+		if (nMaxColors <= 32)
+			PR = PG = PB = PA = 1;
 
 		Integer[] palette;
 		if (nMaxColors > 2)
