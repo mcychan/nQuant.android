@@ -429,9 +429,6 @@ public class PnnQuantizer {
 		
 		hasSemiTransparency = semiTransCount > 0;
 
-		if (nMaxColors <= 32)
-			PR = PG = PB = PA = 1;
-
 		Integer[] palette;
 		if (nMaxColors > 2)
 			palette = pnnquan(pixels, nMaxColors);
