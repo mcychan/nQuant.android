@@ -70,7 +70,7 @@ public class PnnQuantizer {
 		double wb = bin1.bc;
 		
 		int start = 0;
-		if(BlueNoise.RAW_BLUE_NOISE[idx & 4095] > -72)
+		if(BlueNoise.RAW_BLUE_NOISE[idx & 4095] > -77)
 			start = 1;
 		
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
