@@ -180,9 +180,7 @@ public class PnnQuantizer {
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
 		if (weight < .035 && PG < 1 && PG >= coeffs[0][1]) {
-			double delta = Math.exp(1.75) * weight;
-			PG -= delta;
-			PB += delta;
+			PR = PG = PB = PA = 1;
 			if (nMaxColors >= 64)
 				quan_rt = 0;
 		}
