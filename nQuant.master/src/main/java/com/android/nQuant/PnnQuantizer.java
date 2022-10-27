@@ -71,7 +71,7 @@ public class PnnQuantizer {
 		
 		int start = 0;
 		if(BlueNoise.RAW_BLUE_NOISE[idx & 4095] > -88)
-			start = 1;
+			start = (PG < coeffs[0][1]) ? coeffs.length : 1;
 		
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
 			double n2 = bins[i].cnt, nerr2 = (n1 * n2) / (n1 + n2);
@@ -179,7 +179,7 @@ public class PnnQuantizer {
 		double weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
-		if (weight < .035 && PG < 1 && PG >= coeffs[0][1]) {
+		if (weight < .035 && PG >= coeffs[0][1]) {
 			PR = PG = PB = PA = 1;
 			if (nMaxColors >= 64)
 				quan_rt = 0;
@@ -282,6 +282,11 @@ public class PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
+		
+		double pr = PR, pg = PG, pb = PB;
+		if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
+			pr = coeffs[0][0]; pg = coeffs[0][1]; pb = coeffs[0][2];
+		}
 
 		double mindist = Integer.MAX_VALUE;
 		for (short i=0; i<palette.length; ++i) {
@@ -291,15 +296,15 @@ public class PnnQuantizer {
 			if (curdist > mindist)
 				continue;
 
-			curdist += PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
+			curdist += pr * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
+			curdist += pg * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
 			if (curdist > mindist)
 				continue;
 
-			curdist += PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+			curdist += pb * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
 			if (curdist > mindist)
 				continue;
 
@@ -320,19 +325,24 @@ public class PnnQuantizer {
 		if (closest == null) {
 			closest = new int[4];
 			closest[2] = closest[3] = Integer.MAX_VALUE;
+			
+			double pr = PR, pg = PG, pb = PB;
+			if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
+				pr = coeffs[0][0]; pg = coeffs[0][1]; pb = coeffs[0][2];
+			}
 
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
 
-				double err = PR * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
+				double err = pr * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
 				if (err >= closest[3])
 					continue;
 				
-				err += PG * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
+				err += pg * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
 				if (err >= closest[3])
 					continue;
 				
-				err += PB * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
+				err += pb * BitmapUtilities.sqr(Color.blue(c2) - Color.blue(c));
 				if (err >= closest[3])
 					continue;
 				
