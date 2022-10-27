@@ -474,6 +474,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				MAX_ERR >>= 1;
 		}
 		
+		if(PG < coeffs[0][1] && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+			return nearestColorIndex(palette, c, pos);
+		
 		int idx = 1;
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
