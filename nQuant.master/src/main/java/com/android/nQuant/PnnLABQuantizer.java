@@ -49,7 +49,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double err = 1e100;
 
 		Pnnbin bin1 = bins[idx];
-		float n1 = bin1.cnt;
+		float n1 = (float) BitmapUtilities.sqr(bin1.cnt);
 
 		Lab lab1 = new Lab();
 		lab1.alpha = bin1.ac; lab1.L = bin1.Lc; lab1.A = bin1.Ac; lab1.B = bin1.Bc;
@@ -119,20 +119,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (quan_rt > 1)
-				return (cnt, isBlack) -> (int) Math.pow(cnt, 0.75);
+				return cnt -> (int) Math.pow(cnt, 0.75);
 			if (nMaxColors < 64)
-				return (cnt, isBlack) -> {
-					if(isBlack)
-						return (int) Math.pow(cnt, 0.75);
-					return (int) Math.sqrt(cnt);					
-				};
-			return (cnt, isBlack) -> {
-				if(isBlack)
-					return (float) Math.pow(cnt, 0.75);
-				return (float) Math.sqrt(cnt);				
-			};
+				return cnt -> (int) Math.sqrt(cnt);					
+
+			return cnt -> return (float) Math.sqrt(cnt);
 		}
-		return (cnt, index) -> cnt;
+		return cnt -> cnt;
 	}
 
 	@Override
@@ -302,7 +295,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Lc = d * (n1 * tb.Lc + n2 * nb.Lc);
 			tb.Ac = d * (n1 * tb.Ac + n2 * nb.Ac);
 			tb.Bc = d * (n1 * tb.Bc + n2 * nb.Bc);
-			tb.cnt += nb.cnt;
+			tb.cnt += n2;
 			tb.mtm = ++i;
 
 			/* Unchain deleted bin */
