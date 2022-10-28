@@ -121,18 +121,18 @@ public class PnnQuantizer {
 	
 	@FunctionalInterface
 	protected interface QuanFn {
-		float get(float cnt, boolean isBlack);
+		float get(float cnt);
 	}
 	
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (nMaxColors < 64)
-				return (cnt, isBlack) -> (float) Math.sqrt(cnt);
-			return (cnt, isBlack) -> (int) Math.sqrt(cnt);
+				return cnt -> (float) Math.sqrt(cnt);
+			return cnt -> (int) Math.sqrt(cnt);
 		}
 		if (quan_rt < 0)
-			return (cnt, isBlack) -> (int) Math.cbrt(cnt);
-		return (cnt, isBlack) -> cnt;
+			return cnt -> (int) Math.cbrt(cnt);
+		return cnt -> cnt;
 	}
 
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
@@ -192,9 +192,9 @@ public class PnnQuantizer {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 			
-			bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
+			bins[j].cnt = quanFn.get(bins[j].cnt);
 		}
-		bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
+		bins[j].cnt = quanFn.get(bins[j].cnt);
 
 		int h, l, l2;
 		/* Initialize nearest neighbors and build heap of them */
@@ -251,7 +251,7 @@ public class PnnQuantizer {
 			tb.rc = d * Math.round(n1 * tb.rc + n2 * nb.rc);
 			tb.gc = d * Math.round(n1 * tb.gc + n2 * nb.gc);
 			tb.bc = d * Math.round(n1 * tb.bc + n2 * nb.bc);
-			tb.cnt += nb.cnt;
+			tb.cnt += n2;
 			tb.mtm = ++i;
 
 			/* Unchain deleted bin */
