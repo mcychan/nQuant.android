@@ -123,7 +123,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (nMaxColors < 64)
 				return cnt -> (int) Math.sqrt(cnt);					
 
-			return cnt -> return (float) Math.sqrt(cnt);
+			return cnt -> (float) Math.sqrt(cnt);
 		}
 		return cnt -> cnt;
 	}
