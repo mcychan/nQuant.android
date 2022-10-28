@@ -206,9 +206,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			bins[j].fw = j + 1;
 			bins[j + 1].bk = j;
 
-			bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
+			bins[j].cnt = quanFn.get(bins[j].cnt);
 		}
-		bins[j].cnt = quanFn.get(bins[j].cnt, j == 0);
+		bins[j].cnt = quanFn.get(bins[j].cnt);
 
 		final boolean texicab = proportional > .0275;		
 		
