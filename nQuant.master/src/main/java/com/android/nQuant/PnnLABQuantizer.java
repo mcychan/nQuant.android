@@ -49,7 +49,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double err = 1e100;
 
 		Pnnbin bin1 = bins[idx];
-		float n1 = (float) BitmapUtilities.sqr(bin1.cnt);
+		float n1 = PG >= coeffs[0][1] ? bin1.cnt : (float) BitmapUtilities.sqr(bin1.cnt);
 
 		Lab lab1 = new Lab();
 		lab1.alpha = bin1.ac; lab1.L = bin1.Lc; lab1.A = bin1.Ac; lab1.B = bin1.Bc;
