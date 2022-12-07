@@ -25,7 +25,7 @@ public class PnnQuantizer {
 	protected Integer m_transparentColor = Color.argb(0, BYTE_MAX, BYTE_MAX, BYTE_MAX);
 
 	protected double PR = 0.299, PG = 0.587, PB = 0.114, PA = .3333;
-	private double ratio = .5;
+	protected double ratio = .5, weight = 1;
 	private static final float[][] coeffs = new float[][] {
 		{0.299f, 0.587f, 0.114f},
 		{-0.14713f, -0.28886f, 0.436f},
@@ -176,7 +176,7 @@ public class PnnQuantizer {
 		if(nMaxColors < 16)
 			quan_rt = -1;
 		
-		double weight = nMaxColors * 1.0 / maxbins;
+		weight = nMaxColors * 1.0 / maxbins;
 		if (weight > .003 && weight < .005)
 			quan_rt = 0;
 		if (weight < .04 && PG >= coeffs[0][1]) {
@@ -398,7 +398,7 @@ public class PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn(dither);
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, weight);
 
 		if(!dither)
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);

@@ -42,7 +42,7 @@ public class GilbertCurve {
 	private static final float BLOCK_SIZE = 343f;
 
 
-	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable)
+	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final double weight)
 	{
 		this.width = width;
 		this.height = height;
@@ -51,7 +51,7 @@ public class GilbertCurve {
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
 		errorq = new ArrayDeque<>();
-		DITHER_MAX = palette.length < 32 ? (byte) palette.length : 9;
+		DITHER_MAX = weight < .01 ? (byte) 16 : 9;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -178,7 +178,7 @@ public class GilbertCurve {
 			generate2d(0, 0, 0, height, width, 0);
 	}
 
-	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable)
+	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final double weight)
 	{
 		int[] qPixels = new int[pixels.length];
 		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable).run();

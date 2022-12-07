@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
-	protected double ratio = 1.0;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 	
 	private static Random random = new Random();
@@ -497,7 +496,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn();
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, weight);
 
 		if(!dither) {
 			double delta = BitmapUtilities.sqr(palette.length) / pixelMap.size();
