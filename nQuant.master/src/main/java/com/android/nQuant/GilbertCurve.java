@@ -1,6 +1,6 @@
 package com.android.nQuant;
 /* Generalized Hilbert ("gilbert") space-filling curve for rectangular domains of arbitrary (non-power of two) sizes.
-Copyright (c) 2021 Miller Cy Chan
+Copyright (c) 2022 Miller Cy Chan
 * A general rectangle with a known orientation is split into three regions ("up", "right", "down"), for which the function calls itself recursively, until a trivial path can be produced. */
 
 import android.graphics.Color;
@@ -28,7 +28,6 @@ public class GilbertCurve {
 		}
 	}
 	
-	private float divisor;
 	private final int width;
 	private final int height;
 	private final int[] pixels;
@@ -39,15 +38,12 @@ public class GilbertCurve {
 	private final float[] weights;
 	private final int[] lookup;
 
-	private static final byte DITHER_MAX = 9;
-	private static final float BLOCK_SIZE = 343f;	    
-    
+	private final byte DITHER_MAX = 9;
+	private static final float BLOCK_SIZE = 343f;
+
 
 	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float divisor)
 	{
-		this.divisor = (divisor < 3) ? 0.4f + divisor - palette.length / 64.0f : divisor;
-    		if (divisor >= 1.5f || this.divisor > 1.5f)
-			this.divisor = divisor;
 		this.width = width;
 		this.height = height;
 		this.pixels = image;
@@ -55,10 +51,11 @@ public class GilbertCurve {
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;	        
 		errorq = new ArrayDeque<>();
+		DITHER_MAX = palette.length < 32 ? (byte) palette.length : 9;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
-    
+
 	private void ditherPixel(int x, int y) {
 		final int bidx = x + y * width;
 		ErrorBox error = new ErrorBox(pixels[bidx]);
@@ -81,7 +78,7 @@ public class GilbertCurve {
 				lookup[offset] = (Color.alpha(c2) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2, bidx) + 1;
 			qPixels[bidx] = palette[lookup[offset] - 1];
 		}
-		else        	
+		else
 			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
 
 		errorq.poll();
@@ -91,11 +88,12 @@ public class GilbertCurve {
 		error.p[2] = b_pix - Color.blue(c2);
 		error.p[3] = a_pix - Color.alpha(c2);
 		
+		int MAX_ERR = DITHER_MAX - 1;
 		for(int j = 0; j < error.p.length; ++j) {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			error.p[j] /= divisor;
+			error.p[j] = (float) (Math.tanh(error.p[j]) * MAX_ERR);
 		}
 		errorq.add(error);
 	}
@@ -111,11 +109,11 @@ public class GilbertCurve {
 		if (h == 1) {
 			for (int i = 0; i < w; ++i){
 				ditherPixel(x, y);
-  				x += dax;
+				x += dax;
 				y += day;
 			}
-   			return;
-  		}
+			return;
+		}
 
 		if (w == 1) {
 			for (int i = 0; i < h; ++i){
@@ -131,64 +129,59 @@ public class GilbertCurve {
 		int bx2 = bx / 2;
 		int by2 = by / 2;
 
-  		int w2 = Math.abs(ax2 + ay2);
-   		int h2 = Math.abs(bx2 + by2);
+		int w2 = Math.abs(ax2 + ay2);
+		int h2 = Math.abs(bx2 + by2);
 
-   		if (2 * w > 3 * h) {
- 			if ((w2 % 2) != 0 && w > 2) {
+		if (2 * w > 3 * h) {
+			if ((w2 % 2) != 0 && w > 2) {
 				ax2 += dax;
- 				ay2 += day;
-			}    		
+				ay2 += day;
+			}
 			generate2d(x, y, ax2, ay2, bx, by);
 			generate2d(x + ax2, y + ay2, ax - ax2, ay - ay2, bx, by);
 			return;
 		}
-    	
+
 		if ((h2 % 2) != 0 && h > 2) {
 			bx2 += dbx;
 			by2 += dby;
 		}
-		
+
 		generate2d(x, y, bx2, by2, ax2, ay2);
 		generate2d(x + bx2, y + by2, ax, ay, bx - bx2, by - by2);
 		generate2d(x + (ax - dax) + (bx2 - dbx), y + (ay - day) + (by2 - dby), -bx2, -by2, -(ax - ax2), -(ay - ay2));    		
-    }
-    
-    private void run()
-    {
-        /* Dithers all pixels of the image in sequence using
-         * the Hilbert path, and distributes the error in
-         * a sequence of 9 pixels.
-         */
-        final float weightRatio = (float) Math.pow(BLOCK_SIZE + 1f,  1f / (DITHER_MAX - 1f));
-        float weight = 1f, sumweight = 0f;
-        for(int c = 0; c < DITHER_MAX; ++c)
-        {
-            errorq.add(new ErrorBox());
-            sumweight += (weights[DITHER_MAX - c - 1] = 1.0f / weight);
-            weight *= weightRatio;
-        }
-        
-        weight = 0f; /* Normalize */
-        for(int c = 0; c < DITHER_MAX; ++c)
-            weight += (weights[c] /= sumweight);
-        weights[0] += 1f - weight;
+	}
+
+	private void run()
+	{
+		/* Dithers all pixels of the image in sequence using
+		 * the Hilbert path, and distributes the error in
+		 * a sequence of 9 pixels.
+		 */
+		final float weightRatio = (float) Math.pow(BLOCK_SIZE + 1f,  1f / (DITHER_MAX - 1f));
+		float weight = 1f, sumweight = 0f;
+		for(int c = 0; c < DITHER_MAX; ++c)
+		{
+			errorq.add(new ErrorBox());
+			sumweight += (weights[DITHER_MAX - c - 1] = 1.0f / weight);
+			weight *= weightRatio;
+		}
+
+		weight = 0f; /* Normalize */
+		for(int c = 0; c < DITHER_MAX; ++c)
+			weight += (weights[c] /= sumweight);
+		weights[0] += 1f - weight;
 		
-        if (width >= height)
-    		generate2d(0, 0, width, 0, 0, height);
-    	else
-    		generate2d(0, 0, 0, height, width, 0);
-    }   
-    
-    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float divisor)
-    {
-    	int[] qPixels = new int[pixels.length];
-    	new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, divisor).run();        
-        return qPixels;
-    }
-	
-    public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable)
-    {
-    	return dither(width, height, pixels, palette, ditherable, 3.0f);
-    }
+		if (width >= height)
+			generate2d(0, 0, width, 0, 0, height);
+		else
+			generate2d(0, 0, 0, height, width, 0);
+	}
+
+	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable)
+	{
+		int[] qPixels = new int[pixels.length];
+		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable).run();
+		eturn qPixels;
+	}
 }
