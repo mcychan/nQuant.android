@@ -182,6 +182,6 @@ public class GilbertCurve {
 	{
 		int[] qPixels = new int[pixels.length];
 		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable).run();
-		eturn qPixels;
+		return qPixels;
 	}
 }
