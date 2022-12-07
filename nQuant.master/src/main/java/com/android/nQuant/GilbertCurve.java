@@ -38,7 +38,7 @@ public class GilbertCurve {
 	private final float[] weights;
 	private final int[] lookup;
 
-	private final byte DITHER_MAX = 9;
+	private final byte DITHER_MAX;
 	private static final float BLOCK_SIZE = 343f;
 
 
@@ -49,7 +49,7 @@ public class GilbertCurve {
 		this.pixels = image;
 		this.palette = palette;
 		this.qPixels = qPixels;
-		this.ditherable = ditherable;	        
+		this.ditherable = ditherable;
 		errorq = new ArrayDeque<>();
 		DITHER_MAX = palette.length < 32 ? (byte) palette.length : 9;
 		weights = new float[DITHER_MAX];
@@ -149,7 +149,7 @@ public class GilbertCurve {
 
 		generate2d(x, y, bx2, by2, ax2, ay2);
 		generate2d(x + bx2, y + by2, ax, ay, bx - bx2, by - by2);
-		generate2d(x + (ax - dax) + (bx2 - dbx), y + (ay - day) + (by2 - dby), -bx2, -by2, -(ax - ax2), -(ay - ay2));    		
+		generate2d(x + (ax - dax) + (bx2 - dbx), y + (ay - day) + (by2 - dby), -bx2, -by2, -(ax - ax2), -(ay - ay2));
 	}
 
 	private void run()
