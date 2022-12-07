@@ -51,7 +51,7 @@ public class GilbertCurve {
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
 		errorq = new ArrayDeque<>();
-		DITHER_MAX = weight < .01 ? (byte) 16 : 9;
+		DITHER_MAX = weight < .01 ? (byte) 25 : 9;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
