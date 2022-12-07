@@ -496,6 +496,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn();
+		if((semiTransCount * 1.0 / cPixels.length) > .099)
+			weight *= .01;
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, weight);
 
 		if(!dither) {
