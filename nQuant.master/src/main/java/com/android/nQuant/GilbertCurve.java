@@ -98,7 +98,7 @@ public class GilbertCurve {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 5) * (DITHER_MAX - 1);
+			error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
 		}
 		errorq.add(error);
 	}
