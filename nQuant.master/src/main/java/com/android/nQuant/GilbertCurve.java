@@ -60,9 +60,15 @@ public class GilbertCurve {
 		final int bidx = x + y * width;
 		ErrorBox error = new ErrorBox(pixels[bidx]);
 		int i = 0;
+		float maxErr = DITHER_MAX - 1;
 		for(ErrorBox eb : errorq) {
 			for(int j = 0; j < eb.p.length; ++j)
 				error.p[j] += eb.p[j] * weights[i];
+			
+			for(int j = 0; j < eb.p.length; ++j) {
+				if(error.p[j] > maxErr)
+					maxErr = error.p[j];
+			}
 			++i;
 		}
 
@@ -88,12 +94,11 @@ public class GilbertCurve {
 		error.p[2] = b_pix - Color.blue(c2);
 		error.p[3] = a_pix - Color.alpha(c2);
 		
-		int MAX_ERR = DITHER_MAX - 1;
 		for(int j = 0; j < error.p.length; ++j) {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			error.p[j] = (float) (Math.tanh(error.p[j]) * MAX_ERR);
+			error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 5) * (DITHER_MAX - 1);
 		}
 		errorq.add(error);
 	}
