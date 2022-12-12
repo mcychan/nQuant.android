@@ -209,7 +209,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		bins[j].cnt = quanFn.get(bins[j].cnt);
 
-		final boolean texicab = proportional > .0275;		
+		final boolean texicab = proportional > .0275 || (proportional < .025 && proportional > .02);
 		
 		if(hasSemiTransparency)
 			ratio = .5;
