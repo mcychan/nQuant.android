@@ -62,10 +62,8 @@ public class GilbertCurve {
 		int i = 0;
 		float maxErr = DITHER_MAX - 1;
 		for(ErrorBox eb : errorq) {
-			for(int j = 0; j < eb.p.length; ++j)
-				error.p[j] += eb.p[j] * weights[i];
-			
 			for(int j = 0; j < eb.p.length; ++j) {
+				error.p[j] += eb.p[j] * weights[i];
 				if(error.p[j] > maxErr)
 					maxErr = error.p[j];
 			}
