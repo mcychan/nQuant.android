@@ -329,10 +329,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
+		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > 0)
+			k = 1;
 
 		double mindist = Integer.MAX_VALUE;
 		Lab lab1 = getLab(c);
-		for (short i=0; i<palette.length; ++i) {
+		for (short i=k; i<palette.length; ++i) {
 			int c2 = palette[i];			
 
 			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.5) : 0;
@@ -473,7 +475,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
-		if(closest[idx + 2] >= MAX_ERR)
+		if(closest[idx + 2] >= MAX_ERR || (closest[idx] == 0 && Color.alpha(c) > 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
