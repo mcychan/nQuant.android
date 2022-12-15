@@ -282,14 +282,16 @@ public class PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
+		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > 0)
+			k = 1;
 		
 		double pr = PR, pg = PG, pb = PB;
-		if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
+		if(palette.length > 2 && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
 			pr = coeffs[0][0]; pg = coeffs[0][1]; pb = coeffs[0][2];
 		}
 
 		double mindist = Integer.MAX_VALUE;
-		for (short i=0; i<palette.length; ++i) {
+		for (short i=k; i<palette.length; ++i) {
 			int c2 = palette[i];
 
 			double curdist = PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
@@ -374,7 +376,7 @@ public class PnnQuantizer {
 		else if (closest[0] > closest[1])
 			idx = pos % 2;
 
-		if(closest[idx + 2] >= MAX_ERR)
+		if(closest[idx + 2] >= MAX_ERR || (closest[idx] == 0 && Color.alpha(c) > 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
@@ -456,10 +458,23 @@ public class PnnQuantizer {
 		}		
 
 		int[] qPixels = dither(pixels, palette, semiTransCount, width, height, dither);
+		if (hasAlpha())
+		{
+		    int k = qPixels[m_transparentPixelIndex];
+		    if (nMaxColors > 2)
+			palette[k] = m_transparentColor;
+		    else if (palette[k] != m_transparentColor) {
+			Integer tmp = palette[0]; palette[0] = palette[1]; palette[1] = tmp;
+		    }
+		}
 
 		if (m_transparentPixelIndex >= 0)
 			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
 		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
+	}
+	
+	public boolean hasAlpha() {
+		return m_transparentPixelIndex > -1;
 	}
 
 }
