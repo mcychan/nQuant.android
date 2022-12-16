@@ -376,7 +376,7 @@ public class PnnQuantizer {
 		else if (closest[0] > closest[1])
 			idx = pos % 2;
 
-		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx + 2] == 0))
+		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx] == 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
