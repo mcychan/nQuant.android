@@ -282,7 +282,7 @@ public class PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
-		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > 0)
+		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
 			k = 1;
 		
 		double pr = PR, pg = PG, pb = PB;
@@ -376,7 +376,7 @@ public class PnnQuantizer {
 		else if (closest[0] > closest[1])
 			idx = pos % 2;
 
-		if(closest[idx + 2] >= MAX_ERR)
+		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx + 2] == 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
