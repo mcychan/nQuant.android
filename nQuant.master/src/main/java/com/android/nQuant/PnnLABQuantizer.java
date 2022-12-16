@@ -329,7 +329,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
-		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > 0)
+		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
 			k = 1;
 
 		double mindist = Integer.MAX_VALUE;
@@ -475,7 +475,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
-		if(closest[idx + 2] >= MAX_ERR)
+		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx + 2] == 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
