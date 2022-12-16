@@ -475,7 +475,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
-		if(closest[idx + 2] >= MAX_ERR || (closest[idx] == 0 && Color.alpha(c) > 0))
+		if(closest[idx + 2] >= MAX_ERR)
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
