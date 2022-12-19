@@ -60,7 +60,8 @@ public class GilbertCurve {
 
 	private void ditherPixel(int x, int y) {
 		final int bidx = x + y * width;
-		ErrorBox error = new ErrorBox(pixels[bidx]);
+		final int pixel = pixels[bidx];
+		ErrorBox error = new ErrorBox(pixel);
 		int i = 0;
 		float maxErr = DITHER_MAX - 1;
 		for(ErrorBox eb : errorq) {
