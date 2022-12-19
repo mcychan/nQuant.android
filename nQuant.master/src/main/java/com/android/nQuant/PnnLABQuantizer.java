@@ -154,7 +154,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Bc += lab1.B;
 			tb.cnt += 1.0f;
 			if(lab1.alpha > alphaThreshold)
-				saliencies[i] = saliencyBase + (1f - saliencyBase) * lab1.L / 100f;
+				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
 		}
 
 		/* Cluster nonempty bins at one end of array */
