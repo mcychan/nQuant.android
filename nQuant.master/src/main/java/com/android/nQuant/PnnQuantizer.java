@@ -402,7 +402,7 @@ public class PnnQuantizer {
 		Ditherable ditherable = getDitherFn(dither);
 		if((semiTransCount * 1.0 / cPixels.length) > .099)
 			weight *= .01;
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, weight);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, null, weight);
 
 		if(!dither)
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);
@@ -462,9 +462,9 @@ public class PnnQuantizer {
 		{
 		    int k = qPixels[m_transparentPixelIndex];
 		    if (nMaxColors > 2)
-			palette[k] = m_transparentColor;
+				palette[k] = m_transparentColor;
 		    else if (palette[k] != m_transparentColor) {
-			Integer tmp = palette[0]; palette[0] = palette[1]; palette[1] = tmp;
+				Integer tmp = palette[0]; palette[0] = palette[1]; palette[1] = tmp;
 		    }
 		}
 

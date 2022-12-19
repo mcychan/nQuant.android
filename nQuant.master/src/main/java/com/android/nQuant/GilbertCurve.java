@@ -34,6 +34,7 @@ public class GilbertCurve {
 	private final Integer[] palette;
 	private final int[] qPixels;
 	private final Ditherable ditherable;
+	private final float[] saliencies;
 	private final Queue<ErrorBox> errorq;
 	private final float[] weights;
 	private final int[] lookup;
@@ -42,7 +43,7 @@ public class GilbertCurve {
 	private static final float BLOCK_SIZE = 343f;
 
 
-	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final double weight)
+	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float[] saliencies, final double weight)
 	{
 		this.width = width;
 		this.height = height;
@@ -50,8 +51,9 @@ public class GilbertCurve {
 		this.palette = palette;
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
+		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
-		DITHER_MAX = weight < .01 ? (byte) 25 : 9;
+		DITHER_MAX = weight < .01 ? (weight > .002) ? (byte) 25 : (byte) 16 : 9;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -81,6 +83,12 @@ public class GilbertCurve {
 			if (lookup[offset] == 0)
 				lookup[offset] = (Color.alpha(c2) == 0) ? 1 : ditherable.nearestColorIndex(palette, c2, bidx) + 1;
 			qPixels[bidx] = palette[lookup[offset] - 1];
+			
+			if(saliencies != null && saliencies[bidx] > .65f && saliencies[bidx] < .75f) {
+				final float strength = 1 / 3f;
+				Color c1 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
+				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
+			}
 		}
 		else
 			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
@@ -182,10 +190,10 @@ public class GilbertCurve {
 			generate2d(0, 0, 0, height, width, 0);
 	}
 
-	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final double weight)
+	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight)
 	{
 		int[] qPixels = new int[pixels.length];
-		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, weight).run();
+		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight).run();
 		return qPixels;
 	}
 }

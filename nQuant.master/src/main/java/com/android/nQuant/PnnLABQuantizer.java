@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
+	protected float[] saliencies;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 	
 	private static Random random = new Random();
@@ -132,6 +133,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		short quan_rt = (short) 0;
 		Pnnbin[] bins = new Pnnbin[65536];
+		saliencies = new float[pixels.length];
+		float saliencyBase = .1f;
 
 		/* Build histogram */
 		for (int i = 0; i < pixels.length; ++i) {
@@ -149,7 +152,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Lc += lab1.L;
 			tb.Ac += lab1.A;
 			tb.Bc += lab1.B;
-			tb.cnt += 1.0f;			
+			tb.cnt += 1.0f;
+			if(lab1.alpha > alphaThreshold)
+				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f;
 		}
 
 		/* Cluster nonempty bins at one end of array */
@@ -500,7 +505,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Ditherable ditherable = getDitherFn();
 		if((semiTransCount * 1.0 / cPixels.length) > .099)
 			weight *= .01;
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, weight);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight);
 
 		if(!dither) {
 			double delta = BitmapUtilities.sqr(palette.length) / pixelMap.size();

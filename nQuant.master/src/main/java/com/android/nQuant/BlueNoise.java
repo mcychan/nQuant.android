@@ -174,33 +174,40 @@ public class BlueNoise {
 		-65, -32, 85, 7, -16, 80, -32, 10, 95, 50, 88, 123, -121, -12, -79, -42, -102, -53, 42, -75, 85, -107, 21, -82, -25, 
 		14, -9, -91, -55, 99, -111, -20, 31, 88, -3, 105, 53, -29, -90, -10, -70, 9, -57, 123, -99, 5			
 	};
+	
+	public static Color diffuse(final Color pixel, final Color qPixel, final float weight, final float strength, final int x, final int y)
+	{          	
+        int r_pix = Color.red(pixel);
+		int g_pix = Color.green(pixel);
+		int b_pix = Color.blue(pixel);
+		int a_pix = Color.alpha(pixel);
+
+        float adj = (RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) / 127.5f;
+		adj += ((x + y & 1) - 0.5) * strength / 8f;
+		adj *= weight;
+
+		r_pix = (int) Math.min(0xFF, Math.max(r_pix + (adj * (r_pix - Color.red(qPixel))), 0.0));
+		g_pix = (int) Math.min(0xFF, Math.max(g_pix + (adj * (g_pix - Color.green(qPixel))), 0.0));
+		b_pix = (int) Math.min(0xFF, Math.max(b_pix + (adj * (b_pix - Color.blue(qPixel))), 0.0));
+		a_pix = (int) Math.min(0xFF, Math.max(a_pix + (adj * (a_pix - Color.alpha(qPixel))), 0.0));
+		
+		return Color.argb(a_pix, r_pix, g_pix, b_pix);
+	}
 
 	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final int[] qPixels, final float weight)
-    {	
+	{
 		final float strength = 1 / 3f;
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-            	int pixel = pixels[x + y * width];
-                int r_pix = Color.red(pixel);
-                int g_pix = Color.green(pixel);
-                int b_pix = Color.blue(pixel);
-                int a_pix = Color.alpha(pixel);
-                
-                int c1 = qPixels[x + y * width];
-                float adj = (RAW_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) / 127.5f;
-                adj += ((x + y & 1) - 0.5) * strength / 8f;
-                adj *= weight;
+				final int bidx = x + y * width;
+            	int pixel = pixels[bidx];
+				int qPixel = palette[qPixels[bidx]];
 
-                r_pix = (int) Math.min(0xFF, Math.max(r_pix + (adj * (r_pix - Color.red(c1))), 0.0));
-                g_pix = (int) Math.min(0xFF, Math.max(g_pix + (adj * (g_pix - Color.green(c1))), 0.0));
-                b_pix = (int) Math.min(0xFF, Math.max(b_pix + (adj * (b_pix - Color.blue(c1))), 0.0));
-                a_pix = (int) Math.min(0xFF, Math.max(a_pix + (adj * (a_pix - Color.alpha(c1))), 0.0));
-                
-                c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1, x + y)];
+                int c1 = diffuse(pixel, qPixel, weight, strength, x, y);
+                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
             }
         }
-        
+
         return qPixels;
     }
 }
