@@ -154,7 +154,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Bc += lab1.B;
 			tb.cnt += 1.0f;
 			if(lab1.alpha > alphaThreshold)
-				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f;
+				saliencies[i] = saliencyBase + (1f - saliencyBase) * lab1.L / 100f;
 		}
 
 		/* Cluster nonempty bins at one end of array */
@@ -340,7 +340,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double mindist = Integer.MAX_VALUE;
 		Lab lab1 = getLab(c);
 		for (short i=k; i<palette.length; ++i) {
-			int c2 = palette[i];			
+			int c2 = palette[i];
 
 			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.5) : 0;
 			if (curdist > mindist)
@@ -352,7 +352,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				if(hasSemiTransparency)
 					curdist += BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			}
-			else if (hasSemiTransparency) {				
+			else if (hasSemiTransparency) {
 				curdist += BitmapUtilities.sqr(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
@@ -363,14 +363,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				
 				curdist += BitmapUtilities.sqr(lab2.B - lab1.B);
 			}
-			else if (palette.length > 32) {				
+			else if (palette.length > 32) {
 				curdist += Math.abs(lab2.L - lab1.L);
 				if (curdist > mindist)
 					continue;
 
 				curdist += Math.sqrt(BitmapUtilities.sqr(lab2.A - lab1.A) + BitmapUtilities.sqr(lab2.B - lab1.B));
 			}
-			else {				
+			else {
 				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 				curdist += BitmapUtilities.sqr(deltaL_prime_div_k_L_S_L);
 				if (curdist > mindist)
@@ -417,13 +417,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				start = 1;
 
 			for (; k < palette.length; ++k) {
-				int c2 = palette[k];				
+				int c2 = palette[k];
 
-				double err = PR * (1 - ratio) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));					
+				double err = PR * (1 - ratio) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
 				if (err >= closest[3])
 					continue;
 				
-				err += PG * (1 - ratio) * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));					
+				err += PG * (1 - ratio) * BitmapUtilities.sqr(Color.green(c2) - Color.green(c));
 				if (err >= closest[3])
 					continue;
 				

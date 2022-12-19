@@ -175,7 +175,7 @@ public class BlueNoise {
 		14, -9, -91, -55, 99, -111, -20, 31, 88, -3, 105, 53, -29, -90, -10, -70, 9, -57, 123, -99, 5			
 	};
 	
-	public static Color diffuse(final Color pixel, final Color qPixel, final float weight, final float strength, final int x, final int y)
+	public static int diffuse(final int pixel, final int qPixel, final float weight, final float strength, final int x, final int y)
 	{          	
         int r_pix = Color.red(pixel);
 		int g_pix = Color.green(pixel);
@@ -200,11 +200,11 @@ public class BlueNoise {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
 				final int bidx = x + y * width;
-            	int pixel = pixels[bidx];
+				int pixel = pixels[bidx];
 				int qPixel = palette[qPixels[bidx]];
 
-                int c1 = diffuse(pixel, qPixel, weight, strength, x, y);
-                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
+				int c1 = diffuse(pixel, qPixel, weight, strength, x, y);
+				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
             }
         }
 

@@ -86,7 +86,7 @@ public class GilbertCurve {
 			
 			if(saliencies != null && saliencies[bidx] > .65f && saliencies[bidx] < .75f) {
 				final float strength = 1 / 3f;
-				Color c1 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
+				int c1 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
 				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
 			}
 		}
