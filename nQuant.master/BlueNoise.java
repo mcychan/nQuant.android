@@ -200,11 +200,11 @@ public class BlueNoise {
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
 				final int bidx = x + y * width;
-            	int pixel = pixels[bidx];
+				int pixel = pixels[bidx];
 				int qPixel = palette[qPixels[bidx]];
 
-                int c1 = diffuse(pixel, qPixel, weight, strength, x, y);
-                qPixels[x + y * width] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
+				int c1 = diffuse(pixel, qPixel, weight, strength, x, y);
+				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c1, bidx)];
             }
         }
 
