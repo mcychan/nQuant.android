@@ -40,6 +40,7 @@ public class GilbertCurve {
 	private final int[] lookup;
 
 	private final byte DITHER_MAX;
+	private final float DIVISOR;
 	private static final float BLOCK_SIZE = 343f;
 
 
@@ -54,6 +55,7 @@ public class GilbertCurve {
 		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
 		DITHER_MAX = weight < .01 ? (weight > .002) ? (byte) 25 : (byte) 16 : 9;
+		DIVISOR = saliencies != null ? 3f : (float) weight;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -105,8 +107,12 @@ public class GilbertCurve {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			if (palette.length > 2)
-				error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
+			if (palette.length > 2) {
+				if(saliencies != null)
+					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
+				else
+					error.p[j] /= DIVISOR;
+			}
 		}
 		errorq.add(error);
 	}

@@ -400,8 +400,9 @@ public class PnnQuantizer {
 	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn(dither);
+		double weight = 3.0;
 		if((semiTransCount * 1.0 / cPixels.length) > .099)
-			weight *= .01;
+			weight /= 2;
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, null, weight);
 
 		if(!dither)
