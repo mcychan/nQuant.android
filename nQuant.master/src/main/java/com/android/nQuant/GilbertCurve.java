@@ -110,8 +110,12 @@ public class GilbertCurve {
 			if (palette.length > 2) {
 				if(saliencies != null)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
-				else
+				else if(DIVISOR < 3)
 					error.p[j] /= DIVISOR;
+				else {
+					float avg = error.p[j] / maxErr;
+					error.p[j] = (float) avg / (1 + Math.abs(avg)) * (DITHER_MAX - 1);        			
+				}
 			}
 		}
 		errorq.add(error);
