@@ -108,14 +108,10 @@ public class GilbertCurve {
 				continue;
 
 			if (palette.length > 2) {
-				if(saliencies != null)
+				if(saliencies != null || BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
-				else if(DIVISOR < 3)
+				else
 					error.p[j] /= DIVISOR;
-				else {
-					float avg = error.p[j] / maxErr;
-					error.p[j] = (float) avg / (1 + Math.abs(avg)) * (DITHER_MAX - 1);        			
-				}
 			}
 		}
 		errorq.add(error);
