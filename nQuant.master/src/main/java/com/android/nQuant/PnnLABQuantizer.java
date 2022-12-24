@@ -334,7 +334,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
-		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
+		if(palette.length > 1 && hasAlpha() && Color.alpha(c) > alphaThreshold)
 			k = 1;
 
 		double mindist = Integer.MAX_VALUE;
