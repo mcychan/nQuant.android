@@ -104,7 +104,7 @@ public class GilbertCurve {
 		error.p[3] = a_pix - Color.alpha(c2);
 		
 		for(int j = 0; j < error.p.length; ++j) {
-			int k = DIVISOR < 2 ? 0 : DITHER_MAX;
+			int k = (palette.length < 3 || DIVISOR < 2) ? 0 : DITHER_MAX;
 			while(Math.abs(error.p[j]) >= DITHER_MAX && k-- > 0) {
 				if (saliencies != null && (DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88))
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
