@@ -107,12 +107,15 @@ public class GilbertCurve {
 			if(Math.abs(error.p[j]) < DITHER_MAX)
 				continue;
 
-			if (palette.length > 2) {
-				if(saliencies != null || (DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88))
-					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
-				else
-					error.p[j] /= DIVISOR;
-			}
+			int k = DIVISOR < 2 ? 0 : DITHER_MAX;
+        	while(Math.abs(error.p[j]) >= DITHER_MAX && k-- > 0) {
+        		if(saliencies != null)
+        			error.p[j] *= saliencies[bidx];
+        		else if (DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88)
+        			error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
+        		else
+        			error.p[j] /= DIVISOR;
+        	}
 		}
 		errorq.add(error);
 	}
