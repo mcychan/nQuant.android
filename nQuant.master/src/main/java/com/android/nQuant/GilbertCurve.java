@@ -102,11 +102,13 @@ public class GilbertCurve {
 		error.p[1] = g_pix - Color.green(c2);
 		error.p[2] = b_pix - Color.blue(c2);
 		error.p[3] = a_pix - Color.alpha(c2);
-		
-		for(int j = 0; j < error.p.length; ++j) {
-			boolean diffuse = (palette.length < 3 || DIVISOR < 2) ? false : true;
-			if(Math.abs(error.p[j]) >= DITHER_MAX && diffuse) {
-				if (saliencies != null && (DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88))
+
+		boolean dither = (palette.length < 3 || DIVISOR < 2) ? false : true;
+		boolean diffuse = DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
+
+		for(int j = 0; j < error.p.length; ++j) {			
+			if(Math.abs(error.p[j]) >= DITHER_MAX && dither) {
+				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
 				else
 					error.p[j] /= DIVISOR;
