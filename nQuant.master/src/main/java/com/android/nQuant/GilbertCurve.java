@@ -97,21 +97,21 @@ public class GilbertCurve {
 			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
 
 		errorq.poll();
-		c2 = qPixels[bidx];
-		error.p[0] = r_pix - Color.red(c2);
-		error.p[1] = g_pix - Color.green(c2);
-		error.p[2] = b_pix - Color.blue(c2);
-		error.p[3] = a_pix - Color.alpha(c2);
+		int c1 = qPixels[bidx];
+		error.p[0] = r_pix - Color.red(c1);
+		error.p[1] = g_pix - Color.green(c1);
+		error.p[2] = b_pix - Color.blue(c1);
+		error.p[3] = a_pix - Color.alpha(c1);
 
 		boolean dither = (palette.length < 3 || DIVISOR < 2) ? false : true;
 		boolean diffuse = DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 
-		for(int j = 0; j < error.p.length; ++j) {			
+		for(int j = 0; j < error.p.length; ++j) {
 			if(Math.abs(error.p[j]) >= DITHER_MAX && dither) {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
 				else
-					error.p[j] /= DIVISOR;
+					error.p[j] = (float) (error.p[j] / maxErr * CIELABConvertor.Y_Diff(c1, c2)) * (DITHER_MAX - 1);
 			}
 		}
 		errorq.add(error);

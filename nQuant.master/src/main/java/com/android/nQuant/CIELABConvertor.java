@@ -11,7 +11,7 @@ public class CIELABConvertor {
 	static class MutableDouble extends Number {
 
 		private static final long serialVersionUID = -8826262264116498065L;
-		private double value;		
+		private double value;
 
 		public MutableDouble(double value) {
 			this.value = value;
@@ -19,7 +19,7 @@ public class CIELABConvertor {
 		
 		public MutableDouble() {
 			this(0.0);
-		}		
+		}
 
 		public void setValue(double value) {
 			this.value = value;
@@ -204,5 +204,25 @@ public class CIELABConvertor {
 			Math.pow(deltaC_prime_div_k_L_S_L, 2.0) +
 			Math.pow(deltaH_prime_div_k_L_S_L, 2.0) +
 			deltaR_T;
+	}
+	
+	protected static double gammaToLinear(int channel)
+	{
+		final double c = channel / 255.0;
+		return c < 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+	}
+	
+	static double Y_Diff(final int c1, final int c2)
+	{
+		double sr = gammaToLinear(Color.red(c1));
+		double sg = gammaToLinear(Color.green(c1));
+		double sb = gammaToLinear(c1.getBlue());
+		double y = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+		
+		sr = gammaToLinear(Color.red(c2));
+		sg = gammaToLinear(Color.green(c2));
+		sb = gammaToLinear(Color.blue(c2));
+		double y2 = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+		return Math.abs(y2 - y) / 100;
 	}
 }
