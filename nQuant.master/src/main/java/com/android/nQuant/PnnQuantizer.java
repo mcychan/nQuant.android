@@ -459,14 +459,10 @@ public class PnnQuantizer {
 		}		
 
 		int[] qPixels = dither(pixels, palette, semiTransCount, width, height, dither);
-		if (hasAlpha())
+		if (hasAlpha() && nMaxColors > 2)
 		{
-		    int k = qPixels[m_transparentPixelIndex];
-		    if (nMaxColors > 2)
-				palette[k] = m_transparentColor;
-		    else if (palette[k] != m_transparentColor) {
-				Integer tmp = palette[0]; palette[0] = palette[1]; palette[1] = tmp;
-		    }
+			int k = qPixels[m_transparentPixelIndex];
+			palette[k] = m_transparentColor;
 		}
 
 		if (m_transparentPixelIndex >= 0)
