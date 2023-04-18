@@ -1,6 +1,6 @@
 package com.android.nQuant;
 /* Generalized Hilbert ("gilbert") space-filling curve for rectangular domains of arbitrary (non-power of two) sizes.
-Copyright (c) 2022 Miller Cy Chan
+Copyright (c) 2021 - 2023 Miller Cy Chan
 * A general rectangle with a known orientation is split into three regions ("up", "right", "down"), for which the function calls itself recursively, until a trivial path can be produced. */
 
 import android.graphics.Color;
@@ -104,14 +104,15 @@ public class GilbertCurve {
 		error.p[3] = a_pix - Color.alpha(c1);
 
 		boolean dither = (palette.length < 3 || DIVISOR < 2) ? false : true;
-		boolean diffuse = DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
+		double yDiff = CIELABConvertor.Y_Diff(c1, c2);
+		boolean diffuse = DIVISOR > 2 && yDiff < 0.25;
 
 		for(int j = 0; j < error.p.length; ++j) {
 			if(Math.abs(error.p[j]) >= DITHER_MAX && dither) {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
 				else
-					error.p[j] = (float) (error.p[j] / maxErr * CIELABConvertor.Y_Diff(c1, c2)) * (DITHER_MAX - 1);
+					error.p[j] = (float) (error.p[j] / maxErr * yDiff) * (DITHER_MAX - 1);
 			}
 		}
 		errorq.add(error);

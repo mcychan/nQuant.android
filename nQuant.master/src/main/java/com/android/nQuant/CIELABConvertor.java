@@ -223,6 +223,10 @@ public class CIELABConvertor {
 		sg = gammaToLinear(Color.green(c2));
 		sb = gammaToLinear(Color.blue(c2));
 		double y2 = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
-		return Math.abs(y2 - y) / 100;
+		double result = Math.abs(y2 - y) / 100;
+		int aDiff = Math.abs(Color.alpha(c1) - Color.alpha(c2));
+		if(aDiff < 16)
+			return result;
+		return result / 2 + aDiff / 510;
 	}
 }
