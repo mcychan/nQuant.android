@@ -153,7 +153,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Ac += lab1.A;
 			tb.Bc += lab1.B;
 			tb.cnt += 1.0f;
-			if(lab1.alpha > alphaThreshold)
+			if(lab1.alpha > alphaThreshold && nMaxColors < 32)
 				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
 		}
 
