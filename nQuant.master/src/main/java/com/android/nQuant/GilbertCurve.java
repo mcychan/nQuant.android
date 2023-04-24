@@ -104,7 +104,7 @@ public class GilbertCurve {
 		error.p[3] = a_pix - Color.alpha(c1);
 
 		boolean dither = (palette.length < 3 || DIVISOR < 2) ? false : true;
-		boolean diffuse = DIVISOR > 2 && BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
+		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
 		for(int j = 0; j < error.p.length; ++j) {
