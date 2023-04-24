@@ -214,15 +214,15 @@ public class CIELABConvertor {
 	
 	static double Y_Diff(final int c1, final int c2)
 	{
-		double sr = gammaToLinear(Color.red(c1));
-		double sg = gammaToLinear(Color.green(c1));
-		double sb = gammaToLinear(Color.blue(c1));
-		double y = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+		java.util.function.Function<Integer, Double> color2Y = c -> {
+			double sr = gammaToLinear(Color.red(c));
+			double sg = gammaToLinear(Color.green(c));
+			double sb = gammaToLinear(Color.blue(c));
+			return sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+		};
 		
-		sr = gammaToLinear(Color.red(c2));
-		sg = gammaToLinear(Color.green(c2));
-		sb = gammaToLinear(Color.blue(c2));
-		double y2 = sr * 0.2126 + sg * 0.7152 + sb * 0.0722;
+		double y = color2Y.apply(c1);
+		double y2 = color2Y.apply(c2);
 		double result = Math.abs(y2 - y) / 100;
 		int aDiff = Math.abs(Color.alpha(c1) - Color.alpha(c2));
 		if(aDiff < 16)
