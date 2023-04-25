@@ -55,7 +55,7 @@ public class GilbertCurve {
 		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
 		DITHER_MAX = weight < .01 ? (weight > .002) ? (byte) 25 : (byte) 16 : 9;
-		DIVISOR = saliencies != null ? 3f : (float) weight;
+		DIVISOR = Math.min(3f, (float) weight);
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -107,8 +107,9 @@ public class GilbertCurve {
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
-		for(int j = 0; j < error.p.length; ++j) {
-			if(Math.abs(error.p[j]) >= DITHER_MAX && dither) {
+		int errLength = dither ? error.p.length : 0;
+		for(int j = 0; j < errLength; ++j) {
+			if(Math.abs(error.p[j]) >= DITHER_MAX) {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
 				else
