@@ -40,7 +40,6 @@ public class GilbertCurve {
 	private final int[] lookup;
 
 	private final byte DITHER_MAX;
-	private final float DIVISOR;
 	private boolean hasAlpha = false;
 	private static final float BLOCK_SIZE = 343f;
 
@@ -56,7 +55,6 @@ public class GilbertCurve {
 		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
 		DITHER_MAX = weight < .01 ? (byte) 25 : 9;
-		DIVISOR = weight < .01 ? (float) weight : 3f;
 		hasAlpha = false;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
@@ -106,7 +104,7 @@ public class GilbertCurve {
 		error.p[2] = b_pix - Color.blue(c1);
 		error.p[3] = a_pix - Color.alpha(c1);
 
-		boolean dither = (hasAlpha || palette.length < 3 || DIVISOR < 2) ? false : true;
+		boolean dither = (hasAlpha || palette.length < 3) ? false : true;
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
