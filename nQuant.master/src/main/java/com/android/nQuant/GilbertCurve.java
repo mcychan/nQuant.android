@@ -57,6 +57,7 @@ public class GilbertCurve {
 		errorq = new ArrayDeque<>();
 		DITHER_MAX = weight < .01 ? (byte) 25 : 9;
 		DIVISOR = weight < .01 ? (float) weight : 3f;
+		hasAlpha = false;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
