@@ -61,7 +61,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double alphaDiff = hasSemiTransparency ? BitmapUtilities.sqr(lab2.alpha - lab1.alpha) / Math.exp(1.5) : 0;
+			double alphaDiff = hasSemiTransparency ? BitmapUtilities.sqr(lab2.alpha - lab1.alpha) / Math.exp(1.75) : 0;
 			double nerr = nerr2 * alphaDiff;
 			if (nerr >= err)
 				continue;
@@ -466,13 +466,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length;
-		if(hasSemiTransparency && MAX_ERR > 32) {
-			MAX_ERR <<= 1;
-			if (Color.red(c) > 0xF0 && Color.green(c) > 0xF0 && Color.blue(c) > 0xF0)
-				MAX_ERR >>= 1;
-		}
-		
+		int MAX_ERR = palette.length;		
 		if(PG < coeffs[0][1] && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
 			return nearestColorIndex(palette, c, pos);
 		
