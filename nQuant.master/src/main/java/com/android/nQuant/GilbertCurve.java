@@ -41,6 +41,7 @@ public class GilbertCurve {
 
 	private final byte DITHER_MAX;
 	private final float DIVISOR;
+	private boolean hasAlpha = false;
 	private static final float BLOCK_SIZE = 343f;
 
 
@@ -79,6 +80,7 @@ public class GilbertCurve {
 		int g_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[1], 0.0));
 		int b_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[2], 0.0));
 		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
+		hasAlpha |= a_pix < 255;
 		
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		if (palette.length <= 32 && a_pix > 0xF0) {
@@ -103,7 +105,7 @@ public class GilbertCurve {
 		error.p[2] = b_pix - Color.blue(c1);
 		error.p[3] = a_pix - Color.alpha(c1);
 
-		boolean dither = (palette.length < 3 || DIVISOR < 2) ? false : true;
+		boolean dither = (hasAlpha || palette.length < 3 || DIVISOR < 2) ? false : true;
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
