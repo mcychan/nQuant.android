@@ -223,10 +223,6 @@ public class CIELABConvertor {
 		
 		double y = color2Y.apply(c1);
 		double y2 = color2Y.apply(c2);
-		double result = Math.abs(y2 - y) / 100;
-		int aDiff = Math.abs(Color.alpha(c1) - Color.alpha(c2));
-		if(aDiff < 16)
-			return result;
-		return result / 2 + aDiff / 510;
+		return Math.abs(y2 - y) / 100;
 	}
 }
