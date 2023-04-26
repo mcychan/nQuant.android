@@ -104,17 +104,18 @@ public class GilbertCurve {
 		error.p[2] = b_pix - Color.blue(c1);
 		error.p[3] = a_pix - Color.alpha(c1);
 
-		boolean dither = (hasAlpha || palette.length < 3) ? false : true;
+		boolean denoise = palette.length > 2;
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
-		int errLength = dither ? error.p.length : 0;
+		int errLength = denoise ? error.p.length - 1 : 0;
+		byte ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + 1) : DITHER_MAX;
 		for(int j = 0; j < errLength; ++j) {
-			if(Math.abs(error.p[j]) >= DITHER_MAX) {
+			if(Math.abs(error.p[j]) >= ditherMax) {
 				if (diffuse)
-					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (DITHER_MAX - 1);
+					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (ditherMax - 1);
 				else
-					error.p[j] = (float) (error.p[j] / maxErr * yDiff) * (DITHER_MAX - 1);
+					error.p[j] = (float) (error.p[j] / maxErr * yDiff) * (ditherMax - 1);
 			}
 		}
 		errorq.add(error);
