@@ -44,7 +44,7 @@ public class GilbertCurve {
 	private static final float BLOCK_SIZE = 343f;
 
 
-	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float[] saliencies, final double weight)
+	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float[] saliencies, double weight)
 	{
 		this.width = width;
 		this.height = height;
