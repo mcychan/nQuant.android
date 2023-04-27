@@ -39,8 +39,7 @@ public class GilbertCurve {
 	private final float[] weights;
 	private final int[] lookup;
 
-	private final byte DITHER_MAX;
-	private boolean hasAlpha = false;
+	private final byte DITHER_MAX, ditherMax;
 	private static final float BLOCK_SIZE = 343f;
 
 
@@ -54,10 +53,10 @@ public class GilbertCurve {
 		this.ditherable = ditherable;
 		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
-		hasAlpha = weight < 0;
 		weight = Math.abs(weight);
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
-		hasAlpha = false;
+		boolean hasAlpha = weight < 0;
+		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + 1) : DITHER_MAX;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -111,7 +110,6 @@ public class GilbertCurve {
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
 		int errLength = denoise ? error.p.length - 1 : 0;
-		byte ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + 1) : DITHER_MAX;
 		for(int j = 0; j < errLength; ++j) {
 			if(Math.abs(error.p[j]) >= ditherMax) {
 				if (diffuse)
