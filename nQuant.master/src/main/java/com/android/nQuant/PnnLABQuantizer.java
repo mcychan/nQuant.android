@@ -466,7 +466,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closestMap.put(c, closest);
 		}
 
-		int MAX_ERR = palette.length;		
+		int MAX_ERR = palette.length;
 		if(PG < coeffs[0][1] && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
 			return nearestColorIndex(palette, c, pos);
 		
@@ -494,11 +494,11 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	}
 
 	@Override
-	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
+	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn();
-		if((semiTransCount * 1.0 / cPixels.length) > .099)
-			weight *= .01;
+		if(hasSemiTransparency)
+			weight *= -1;
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight);
 
 		if(!dither) {

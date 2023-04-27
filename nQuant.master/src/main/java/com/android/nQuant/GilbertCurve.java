@@ -54,6 +54,8 @@ public class GilbertCurve {
 		this.ditherable = ditherable;
 		this.saliencies = saliencies;
 		errorq = new ArrayDeque<>();
+		hasAlpha = weight < 0;
+		weight = Math.abs(weight);
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		hasAlpha = false;
 		weights = new float[DITHER_MAX];

@@ -1,7 +1,7 @@
 package com.android.nQuant;
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev
-Copyright (c) 2018-2022 Miller Cy Chan
+Copyright (c) 2018-2023 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
 import android.graphics.Bitmap;
@@ -397,12 +397,11 @@ public class PnnQuantizer {
 		};
 	}
 
-	protected int[] dither(final int[] cPixels, Integer[] palette, int semiTransCount, int width, int height, boolean dither)
+	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither)
 	{
 		Ditherable ditherable = getDitherFn(dither);
-		double weight = 3.0;
-		if((semiTransCount * 1.0 / cPixels.length) > .099)
-			weight *= .01;
+		if(hasSemiTransparency)
+			weight *= -1;
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, null, weight);
 
 		if(!dither)
@@ -458,7 +457,7 @@ public class PnnQuantizer {
 			}
 		}		
 
-		int[] qPixels = dither(pixels, palette, semiTransCount, width, height, dither);
+		int[] qPixels = dither(pixels, palette, width, height, dither);
 		if (hasAlpha() && nMaxColors > 2)
 		{
 			int k = qPixels[m_transparentPixelIndex];
