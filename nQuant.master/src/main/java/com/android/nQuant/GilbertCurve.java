@@ -108,7 +108,7 @@ public class GilbertCurve {
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
 		int errLength = denoise ? error.p.length - 1 : 0;
-		double edge = hasAlpha ? 1 : Math.floor((1 - yDiff) * 3) - .25;
+		double edge = hasAlpha ? 1 : .75;
 		byte ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge) : DITHER_MAX;
 		for(int j = 0; j < errLength; ++j) {
 			if(Math.abs(error.p[j]) >= ditherMax) {
