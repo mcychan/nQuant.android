@@ -286,7 +286,7 @@ public class PnnQuantizer {
 			k = 1;
 		
 		double pr = PR, pg = PG, pb = PB, pa = PA;
-		if(palette.length < 3 || BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+		if(palette.length < 3)
 			pr = pg = pb = pa = 1;
 
 		double mindist = Integer.MAX_VALUE;
@@ -328,7 +328,7 @@ public class PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
 			double pr = PR, pg = PG, pb = PB, pa = PA;
-			if(palette.length < 3 || BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+			if(palette.length < 3)
 				pr = pg = pb = pa = 1;
 
 			for (; k < palette.length; ++k) {
