@@ -285,16 +285,15 @@ public class PnnQuantizer {
 		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
 			k = 1;
 		
-		double pr = PR, pg = PG, pb = PB;
-		if(palette.length > 1 && BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
-			pr = coeffs[0][0]; pg = coeffs[0][1]; pb = coeffs[0][2];
-		}
+		double pr = PR, pg = PG, pb = PB, pa = PA;
+		if(palette.length < 3 || BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+			pr = pg = pb = pa = 1;
 
 		double mindist = Integer.MAX_VALUE;
 		for (short i=k; i<palette.length; ++i) {
 			int c2 = palette[i];
 
-			double curdist = PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+			double curdist = pa * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 			if (curdist > mindist)
 				continue;
 
@@ -328,10 +327,9 @@ public class PnnQuantizer {
 			closest = new int[4];
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
-			double pr = PR, pg = PG, pb = PB;
-			if(BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88) {
-				pr = coeffs[0][0]; pg = coeffs[0][1]; pb = coeffs[0][2];
-			}
+			double pr = PR, pg = PG, pb = PB, pa = PA;
+			if(palette.length < 3 || BlueNoise.RAW_BLUE_NOISE[pos & 4095] > -88)
+				pr = pg = pb = pa = 1;
 
 			for (; k < palette.length; ++k) {
 				int c2 = palette[k];
@@ -349,7 +347,7 @@ public class PnnQuantizer {
 					continue;
 				
 				if (hasSemiTransparency)
-					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
+					err += pa * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 				
 				if (err < closest[2]) {
 					closest[1] = closest[0];
