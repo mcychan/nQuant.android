@@ -106,7 +106,6 @@ public class GilbertCurve {
 
 		boolean denoise = palette.length > 2;
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
-		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(c1, c2);
 
 		int errLength = denoise ? error.p.length - 1 : 0;		
 		for(int j = 0; j < errLength; ++j) {
@@ -114,7 +113,7 @@ public class GilbertCurve {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (ditherMax - 1);
 				else
-					error.p[j] = (float) (error.p[j] / maxErr * yDiff) * (ditherMax - 1);
+					error.p[j] = (float) (error.p[j] / Math.sqrt(ditherMax));
 			}
 		}
 		errorq.add(error);
