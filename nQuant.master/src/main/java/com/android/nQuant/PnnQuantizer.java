@@ -177,7 +177,7 @@ public class PnnQuantizer {
 			quan_rt = -1;
 		
 		weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
-		if (weight < .04 && PG >= coeffs[0][1]) {
+		if (weight < .03 && PG >= coeffs[0][1]) {
 			PR = PG = PB = PA = 1;
 			if (nMaxColors >= 64)
 				quan_rt = 0;
