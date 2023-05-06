@@ -98,15 +98,16 @@ public class GilbertCurve {
 			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
 
 		errorq.poll();
-		int c1 = qPixels[bidx];
-		error.p[0] = r_pix - Color.red(c1);
-		error.p[1] = g_pix - Color.green(c1);
-		error.p[2] = b_pix - Color.blue(c1);
-		error.p[3] = a_pix - Color.alpha(c1);
+		c2 = qPixels[bidx];
+		error.p[0] = r_pix - Color.red(c2);
+		error.p[1] = g_pix - Color.green(c2);
+		error.p[2] = b_pix - Color.blue(c2);
+		error.p[3] = a_pix - Color.alpha(c2);
 
 		boolean denoise = palette.length > 2;
 		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
-		double yDiff = diffuse ? 0 : CIELABConvertor.Y_Diff(c1, c2);
+		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
+		boolean illusion = !diffuse && BlueNoise.RAW_BLUE_NOISE[(int) (yDiff * 4096)] > -88;
 
 		int errLength = denoise ? error.p.length - 1 : 0;		
 		for(int j = 0; j < errLength; ++j) {
@@ -114,7 +115,6 @@ public class GilbertCurve {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (ditherMax - 1);
 				else {
-					boolean illusion = BlueNoise.RAW_BLUE_NOISE[(int) (yDiff * 4096)] > -88;
 					if(illusion)
 						error.p[j] /= (float) (1 + Math.sqrt(ditherMax));
 					else
