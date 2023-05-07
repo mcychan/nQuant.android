@@ -39,6 +39,7 @@ public class GilbertCurve {
 	private final float[] weights;
 	private final int[] lookup;
 	private final byte DITHER_MAX, ditherMax;
+	private final int thresold;
 	private static final float BLOCK_SIZE = 343f;
 
 
@@ -57,6 +58,7 @@ public class GilbertCurve {
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
 		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge) : DITHER_MAX;
+		thresold = DITHER_MAX > 9 ? -112 : -88;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
 	}
@@ -105,9 +107,9 @@ public class GilbertCurve {
 		error.p[3] = a_pix - Color.alpha(c2);
 
 		boolean denoise = palette.length > 2;
-		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > -88;
+		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > thresold;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
-		boolean illusion = !diffuse && BlueNoise.RAW_BLUE_NOISE[(int) (yDiff * 4096)] > -88;
+		boolean illusion = !diffuse && BlueNoise.RAW_BLUE_NOISE[(int) (yDiff * 4096)] > thresold;
 
 		int errLength = denoise ? error.p.length - 1 : 0;		
 		for(int j = 0; j < errLength; ++j) {
