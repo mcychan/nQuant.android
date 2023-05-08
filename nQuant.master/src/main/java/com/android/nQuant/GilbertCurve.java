@@ -60,7 +60,7 @@ public class GilbertCurve {
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
 		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge) : DITHER_MAX;
 		if(palette.length / weight > 5000)
-			ditherMax = 100;
+			ditherMax = 36;
 		thresold = DITHER_MAX > 9 ? -112 : -88;
 		weights = new float[DITHER_MAX];
 		lookup = new int[65536];
