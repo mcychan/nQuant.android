@@ -85,9 +85,7 @@ public class GilbertCurve {
 		int g_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[1], 0.0));
 		int b_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[2], 0.0));
 		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
-		if(Color.alpha(pixel) < 0xF)
-			a_pix = 0;
-		
+
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		if (palette.length <= 32 && a_pix > 0xF0) {
 			int offset = ditherable.getColorIndex(c2);
