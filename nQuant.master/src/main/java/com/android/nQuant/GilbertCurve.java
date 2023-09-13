@@ -110,9 +110,9 @@ public class GilbertCurve {
 		error.p[3] = a_pix - Color.alpha(c2);
 
 		boolean denoise = palette.length > 2;
-		boolean diffuse = BlueNoise.RAW_BLUE_NOISE[bidx & 4095] > thresold;
+		boolean diffuse = BlueNoise.TELL_BLUE_NOISE[bidx & 4095] > thresold;
 		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
-		boolean illusion = !diffuse && BlueNoise.RAW_BLUE_NOISE[(int) (yDiff * 4096)] > thresold;
+		boolean illusion = !diffuse && BlueNoise.TELL_BLUE_NOISE[(int) (yDiff * 4096)] > thresold;
 
 		int errLength = denoise ? error.p.length - 1 : 0;		
 		for(int j = 0; j < errLength; ++j) {
