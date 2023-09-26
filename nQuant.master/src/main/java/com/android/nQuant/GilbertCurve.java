@@ -17,8 +17,7 @@ public class GilbertCurve {
 	{
 		private double yDiff;
 		private final float[] p;
-		private ErrorBox(double yDiff) {
-			this.yDiff = yDiff;
+		private ErrorBox() {
 			p = new float[4];
 		}
 		
