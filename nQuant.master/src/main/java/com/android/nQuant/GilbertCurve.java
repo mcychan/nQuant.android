@@ -5,6 +5,8 @@ Copyright (c) 2021 - 2023 Miller Cy Chan
 
 import android.graphics.Color;
 import java.util.ArrayDeque;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
@@ -13,8 +15,10 @@ public class GilbertCurve {
 	
 	private static final class ErrorBox
 	{
+		private double yDiff;
 		private final float[] p;
-		private ErrorBox() {
+		private ErrorBox(double yDiff) {
+			this.yDiff = yDiff;
 			p = new float[4];
 		}
 		
@@ -29,6 +33,7 @@ public class GilbertCurve {
 	}
 
 	private byte ditherMax;
+	private final boolean sortedByYDiff;
 	private final int width;
 	private final int height;
 	private final int[] pixels;
@@ -53,8 +58,16 @@ public class GilbertCurve {
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
 		this.saliencies = saliencies;
-		errorq = new ArrayDeque<>();
 		boolean hasAlpha = weight < 0;
+		sortedByYDiff = saliencies != null && !hasAlpha && palette.length >= 256;
+		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
+
+			@Override
+			public int compare(ErrorBox o1, ErrorBox o2) {
+				return Double.compare(o2.yDiff, o1.yDiff);
+			}
+			
+		}) : new ArrayDeque<>();
 		weight = Math.abs(weight);
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
@@ -72,7 +85,7 @@ public class GilbertCurve {
 		final int bidx = x + y * width;
 		final int pixel = pixels[bidx];
 		ErrorBox error = new ErrorBox(pixel);
-		int i = 0;
+		int i = sortedByYDiff ? weights.length - 1 : 0;
 		float maxErr = DITHER_MAX - 1;
 		for(ErrorBox eb : errorq) {
 			for(int j = 0; j < eb.p.length; ++j) {
@@ -80,7 +93,7 @@ public class GilbertCurve {
 				if(error.p[j] > maxErr)
 					maxErr = error.p[j];
 			}
-			++i;
+			i += sortedByYDiff ? -1 : 1;
 		}
 
 		int r_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[0], 0.0));
@@ -113,26 +126,24 @@ public class GilbertCurve {
 
 		boolean denoise = palette.length > 2;
 		boolean diffuse = BlueNoise.TELL_BLUE_NOISE[bidx & 4095] > thresold;
-		double yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
-		boolean illusion = !diffuse && BlueNoise.TELL_BLUE_NOISE[(int) (yDiff * 4096) & 4095] > thresold;
+		error.yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
+		boolean illusion = !diffuse && BlueNoise.TELL_BLUE_NOISE[(int) (error.yDiff * 4096) & 4095] > thresold;
 
-		int errLength = denoise ? error.p.length - 1 : 0;		
+		int errLength = denoise ? error.p.length - 1 : 0;
 		for(int j = 0; j < errLength; ++j) {
 			if(Math.abs(error.p[j]) >= ditherMax) {
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (ditherMax - 1);
-				else {
-					if(illusion)
-						error.p[j] = (float) (error.p[j] / maxErr * yDiff) * (ditherMax - 1);
-					else
-						error.p[j] /= (float) (1 + Math.sqrt(ditherMax));
-				}
+				else if(illusion)
+					error.p[j] = (float) (error.p[j] / maxErr * error.yDiff) * (ditherMax - 1);
+				else
+					error.p[j] /= (float) (1 + Math.sqrt(ditherMax));
 			}
 		}
 		errorq.add(error);
 	}
 	
-	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {    	
+	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {
 		int w = Math.abs(ax + ay);
 		int h = Math.abs(bx + by);
 		int dax = Integer.signum(ax);
