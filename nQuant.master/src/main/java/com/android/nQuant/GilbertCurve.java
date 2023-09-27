@@ -15,7 +15,7 @@ public class GilbertCurve {
 	
 	private static final class ErrorBox
 	{
-		private double yDiff = 1.0;
+		private double yDiff = -1.0;
 		private final float[] p;
 		private ErrorBox() {
 			p = new float[4];
@@ -93,6 +93,8 @@ public class GilbertCurve {
 					maxErr = error.p[j];
 			}
 			i += sortedByYDiff ? -1 : 1;
+			if(eb.yDiff < 0)
+				eb.yDiff = error.yDiff;
 		}
 
 		int r_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[0], 0.0));
@@ -125,7 +127,7 @@ public class GilbertCurve {
 
 		boolean denoise = palette.length > 2;
 		boolean diffuse = BlueNoise.TELL_BLUE_NOISE[bidx & 4095] > thresold;
-		error.yDiff = diffuse ? 1 : CIELABConvertor.Y_Diff(pixel, c2);
+		error.yDiff = sortedByYDiff ? CIELABConvertor.Y_Diff(pixel, c2) : 1;
 		boolean illusion = !diffuse && BlueNoise.TELL_BLUE_NOISE[(int) (error.yDiff * 4096) & 4095] > thresold;
 
 		int errLength = denoise ? error.p.length - 1 : 0;
@@ -199,8 +201,8 @@ public class GilbertCurve {
 	private void run()
 	{
 		/* Dithers all pixels of the image in sequence using
-		 * the Hilbert path, and distributes the error in
-		 * a sequence of 9 pixels.
+		 * the Gilbert path, and distributes the error in
+		 * a sequence of DITHER_MAX pixels.
 		 */
 		final float weightRatio = (float) Math.pow(BLOCK_SIZE + 1f,  1f / (DITHER_MAX - 1f));
 		float weight = 1f, sumweight = 0f;
