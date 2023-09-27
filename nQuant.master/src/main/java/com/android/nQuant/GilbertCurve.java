@@ -94,7 +94,7 @@ public class GilbertCurve {
 			}
 			i += sortedByYDiff ? -1 : 1;
 			if(eb.yDiff < 0)
-				eb.yDiff = error.yDiff;
+				eb.yDiff = error.yDiff + 1e-6 * i;
 		}
 
 		int r_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[0], 0.0));
