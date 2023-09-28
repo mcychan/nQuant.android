@@ -5,9 +5,6 @@ Copyright (c) 2021 - 2023 Miller Cy Chan
 
 import android.graphics.Color;
 import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.PriorityQueue;
-import java.util.Queue;
 
 import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
 
@@ -15,12 +12,12 @@ public class GilbertCurve {
 	
 	private static final class ErrorBox
 	{
-		private double yDiff = -1.0;
+		private double yDiff = 0;
 		private final float[] p;
 		private ErrorBox() {
 			p = new float[4];
 		}
-		
+
 		private ErrorBox(int c) {
 			p = new float[] {
 				Color.red(c),
@@ -32,6 +29,7 @@ public class GilbertCurve {
 	}
 
 	private byte ditherMax;
+	private float[] weights;
 	private final boolean sortedByYDiff;
 	private final int width;
 	private final int height;
@@ -40,9 +38,9 @@ public class GilbertCurve {
 	private final int[] qPixels;
 	private final Ditherable ditherable;
 	private final float[] saliencies;
-	private final Queue<ErrorBox> errorq;
-	private final float[] weights;
+	private final ArrayDeque<ErrorBox> errorq;
 	private final int[] lookup;
+
 	private final byte DITHER_MAX;
 	private final int thresold;
 	private static final float BLOCK_SIZE = 343f;
@@ -59,14 +57,7 @@ public class GilbertCurve {
 		this.saliencies = saliencies;
 		boolean hasAlpha = weight < 0;
 		sortedByYDiff = saliencies != null && !hasAlpha && palette.length >= 256;
-		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
-
-			@Override
-			public int compare(ErrorBox o1, ErrorBox o2) {
-				return Double.compare(o2.yDiff, o1.yDiff);
-			}
-			
-		}) : new ArrayDeque<>();
+		errorq = new ArrayDeque<>();
 		weight = Math.abs(weight);
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
@@ -76,7 +67,7 @@ public class GilbertCurve {
 		else if(palette.length / weight < 3200 && palette.length > 16 && palette.length < 256)
 			ditherMax = (byte) BitmapUtilities.sqr(5 + edge);
 		thresold = DITHER_MAX > 9 ? -112 : -64;
-		weights = new float[DITHER_MAX];
+		weights = new float[0];
 		lookup = new int[65536];
 	}
 
@@ -84,17 +75,19 @@ public class GilbertCurve {
 		final int bidx = x + y * width;
 		final int pixel = pixels[bidx];
 		ErrorBox error = new ErrorBox(pixel);
-		int i = sortedByYDiff ? weights.length - 1 : 0;
+
 		float maxErr = DITHER_MAX - 1;
+		int i = sortedByYDiff ? weights.length - 1 : 0;
 		for(ErrorBox eb : errorq) {
+			if(i < 0 || i > weights.length)
+				break;
+
 			for(int j = 0; j < eb.p.length; ++j) {
 				error.p[j] += eb.p[j] * weights[i];
 				if(error.p[j] > maxErr)
 					maxErr = error.p[j];
 			}
 			i += sortedByYDiff ? -1 : 1;
-			if(sortedByYDiff && eb.yDiff < 0)
-				eb.yDiff = i % 2;
 		}
 
 		int r_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[0], 0.0));
@@ -118,7 +111,11 @@ public class GilbertCurve {
 		else
 			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
 
-		errorq.poll();
+		if(errorq.size() >= DITHER_MAX)
+			errorq.poll();
+		else if(!errorq.isEmpty())
+			initWeights(errorq.size());
+
 		c2 = qPixels[bidx];
 		error.p[0] = r_pix - Color.red(c2);
 		error.p[1] = g_pix - Color.green(c2);
@@ -143,7 +140,7 @@ public class GilbertCurve {
 		}
 		errorq.add(error);
 	}
-	
+
 	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {
 		int w = Math.abs(ax + ay);
 		int h = Math.abs(bx + by);
@@ -198,26 +195,32 @@ public class GilbertCurve {
 		generate2d(x + (ax - dax) + (bx2 - dbx), y + (ay - day) + (by2 - dby), -bx2, -by2, -(ax - ax2), -(ay - ay2));
 	}
 
-	private void run()
-	{
+	private void initWeights(int size) {
 		/* Dithers all pixels of the image in sequence using
 		 * the Gilbert path, and distributes the error in
-		 * a sequence of DITHER_MAX pixels.
+		 * a sequence of pixels size.
 		 */
-		final float weightRatio = (float) Math.pow(BLOCK_SIZE + 1f,  1f / (DITHER_MAX - 1f));
+		final float weightRatio = (float) Math.pow(BLOCK_SIZE + 1f, 1f / (size - 1f));
 		float weight = 1f, sumweight = 0f;
-		for(int c = 0; c < DITHER_MAX; ++c)
-		{
-			errorq.add(new ErrorBox());
-			sumweight += (weights[DITHER_MAX - c - 1] = 1.0f / weight);
-			weight *= weightRatio;
+		weights = new float[size];
+		for(int c = 0; c < size; ++c) {
+			if(!sortedByYDiff)
+				errorq.add(new ErrorBox());
+			sumweight += (weights[size - c - 1] = weight);
+			weight /= weightRatio;
 		}
 
 		weight = 0f; /* Normalize */
-		for(int c = 0; c < DITHER_MAX; ++c)
+		for(int c = 0; c < size; ++c)
 			weight += (weights[c] /= sumweight);
 		weights[0] += 1f - weight;
-		
+	}
+
+	private void run()
+	{
+		if(!sortedByYDiff)
+			initWeights(DITHER_MAX);
+
 		if (width >= height)
 			generate2d(0, 0, width, 0, 0, height);
 		else
