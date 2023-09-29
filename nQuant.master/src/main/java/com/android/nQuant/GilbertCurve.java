@@ -5,6 +5,9 @@ Copyright (c) 2021 - 2023 Miller Cy Chan
 
 import android.graphics.Color;
 import java.util.ArrayDeque;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
 
@@ -38,7 +41,7 @@ public class GilbertCurve {
 	private final int[] qPixels;
 	private final Ditherable ditherable;
 	private final float[] saliencies;
-	private final ArrayDeque<ErrorBox> errorq;
+	private final Queue<ErrorBox> errorq;
 	private final int[] lookup;
 
 	private final byte DITHER_MAX;
@@ -56,8 +59,15 @@ public class GilbertCurve {
 		this.ditherable = ditherable;
 		this.saliencies = saliencies;
 		boolean hasAlpha = weight < 0;
-		sortedByYDiff = !hasAlpha && palette.length >= 256;
-		errorq = new ArrayDeque<>();
+		sortedByYDiff = !hasAlpha && palette.length >= 64;
+		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
+
+			@Override
+			public int compare(ErrorBox o1, ErrorBox o2) {
+				return Double.compare(o2.yDiff, o1.yDiff);
+			}
+			
+		}) : new ArrayDeque<>();
 		weight = Math.abs(weight);
 		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
