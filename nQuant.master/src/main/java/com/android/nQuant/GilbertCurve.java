@@ -57,7 +57,7 @@ public class GilbertCurve {
 		this.ditherable = ditherable;
 		this.saliencies = saliencies;
 		boolean hasAlpha = weight < 0;
-		sortedByYDiff = !hasAlpha && palette.length >= 64;
+		sortedByYDiff = !hasAlpha && palette.length >= 128;
 		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
 
 			@Override
