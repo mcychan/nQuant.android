@@ -185,7 +185,7 @@ public class BlueNoise {
 		int a_pix = Color.alpha(pixel);
 
 		float adj = (TELL_BLUE_NOISE[(x & 63) | (y & 63) << 6] + 0.5f) / 127.5f;
-		adj += ((x + y & 1) - 0.5) * strength / 8f;
+		adj += ((x + y & 1) - 0.5f) * strength / 8f;
 		adj *= weight;
 
 		r_pix = (int) Math.min(0xFF, Math.max(r_pix + (adj * (r_pix - Color.red(qPixel))), 0.0));

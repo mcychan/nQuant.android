@@ -121,7 +121,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (quan_rt > 1)
 				return cnt -> (int) Math.pow(cnt, 0.75);
 			if (nMaxColors < 64)
-				return cnt -> (int) Math.sqrt(cnt);					
+				return cnt -> (int) Math.sqrt(cnt);
 
 			return cnt -> (float) Math.sqrt(cnt);
 		}
@@ -148,10 +148,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += lab1.alpha;
-			tb.Lc += lab1.L;
-			tb.Ac += lab1.A;
-			tb.Bc += lab1.B;
+			tb.ac += (float) lab1.alpha;
+			tb.Lc += (float) lab1.L;
+			tb.Ac += (float) lab1.A;
+			tb.Bc += (float) lab1.B;
 			tb.cnt += 1.0f;
 			if(lab1.alpha > alphaThreshold && nMaxColors < 32)
 				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
