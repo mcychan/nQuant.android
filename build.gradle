@@ -1,35 +1,32 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    
-    repositories {
-        mavenLocal()
-        mavenCentral()
+	
+	repositories {
 		google()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.0.3'
-        
+		jcenter()
+	}
+	dependencies {
+		classpath 'com.android.tools.build:gradle:7.4.2'
+		
 
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
+		// NOTE: Do not place your application dependencies here; they belong
+		// in the individual module build.gradle files
+	}
 }
 
 allprojects {
-    gradle.projectsEvaluated {		
-        tasks.withType(JavaCompile) {
+	gradle.projectsEvaluated {
+		tasks.withType(JavaCompile) {
 			options.encoding = 'UTF-8'
-			sourceCompatibility = '1.8'
-			targetCompatibility = '1.8'
 		}
-    }
-    repositories {
-        mavenCentral()
-        google()
-    }
+	}
+	repositories {
+		google()
+		jcenter()
+	}
 }
 
 task clean(type: Delete) {
-    delete rootProject.buildDir
+	delete rootProject.buildDir
 }
