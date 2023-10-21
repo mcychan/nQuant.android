@@ -2,10 +2,10 @@ apply plugin: 'com.android.application'
 
 android {
 	compileSdkVersion 30
-	defaultConfig {		
+	defaultConfig {
 		applicationId "nquant.android"
 		minSdkVersion 30
-		targetSdkVersion 30
+		targetSdkVersion 31
 		versionCode 1
 		versionName "1.31"
 		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
