@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     publishNonDefault true
     packagingOptions {
@@ -10,8 +10,8 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 29
-        targetSdkVersion 30
+        minSdkVersion 31
+        targetSdkVersion 31
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
