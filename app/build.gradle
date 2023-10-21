@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     defaultConfig {		
         applicationId "nquant.android"
-        minSdkVersion 29
-        targetSdkVersion 30
+        minSdkVersion 31
+        targetSdkVersion 31
         versionCode 1
-        versionName "1.0"
+        versionName "1.31"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 	tasks.withType(JavaCompile) {
@@ -23,8 +23,8 @@ android {
         abortOnError false
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     dependenciesInfo {
         includeInApk true
