@@ -225,4 +225,15 @@ public class CIELABConvertor {
 		double y2 = color2Y.apply(c2);
 		return Math.abs(y2 - y) * 100;
 	}
+
+	static double U_Diff(final int c1, final int c2)
+	{
+		java.util.function.Function<Integer, Double> color2U = c -> {
+			return -0.09991 * Color.red(c) - 0.33609 * Color.green(c) + 0.436 * Color.blue(c);
+		};
+		
+		double u = color2U.apply(c1);
+		double u2 = color2U.apply(c2);
+		return Math.abs(u2 - u);
+	}
 }
