@@ -112,8 +112,9 @@ public class GilbertCurve {
 			if (lookup[offset] == 0)
 				lookup[offset] = ditherable.nearestColorIndex(palette, c2, bidx) + 1;
 			qPixels[bidx] = palette[lookup[offset] - 1];
-			
-			if(saliencies != null && CIELABConvertor.Y_Diff(pixel, c2) > Math.max(1, palette.length - margin)) {
+
+			int acceptedDiff = Math.max(1, palette.length - margin);
+			if(saliencies != null && (CIELABConvertor.Y_Diff(pixel, c2) > acceptedDiff || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
 				final float strength = 1 / 3f;
 				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
 				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
