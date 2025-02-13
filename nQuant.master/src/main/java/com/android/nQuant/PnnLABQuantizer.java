@@ -1,5 +1,9 @@
 package com.android.nQuant;
 
+/* Fast pairwise nearest neighbor based algorithm with CIELAB color space advanced version
+Copyright (c) 2018-2025 Miller Cy Chan
+* error measure; time used is proportional to number of bins squared - WJ */
+
 import android.graphics.Color;
 
 import com.android.nQuant.CIELABConvertor.Lab;
@@ -133,7 +137,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	{
 		short quan_rt = (short) 0;
 		Pnnbin[] bins = new Pnnbin[65536];
-		saliencies = new float[pixels.length];
+		saliencies = nMaxColors >= 128 ? null : new float[pixels.length];
 		float saliencyBase = .1f;
 
 		/* Build histogram */
@@ -153,7 +157,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			tb.Ac += (float) lab1.A;
 			tb.Bc += (float) lab1.B;
 			tb.cnt += 1.0f;
-			if(lab1.alpha > alphaThreshold && nMaxColors < 32)
+			if(saliencies != null && lab1.alpha > alphaThreshold)
 				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
 		}
 
@@ -505,6 +509,17 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		Ditherable ditherable = getDitherFn();
 		if(hasSemiTransparency)
 			weight *= -1;
+
+		if(dither && !hasSemiTransparency && saliencies == null && weight < .052) {
+			saliencies = new float[pixels.length];
+			float saliencyBase = .1f;
+
+			for (int i = 0; i < pixels.length; ++i) {
+				Lab lab1 = getLab(pixels[i]);
+
+				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
+			}
+		}
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight);
 
 		if(!dither) {

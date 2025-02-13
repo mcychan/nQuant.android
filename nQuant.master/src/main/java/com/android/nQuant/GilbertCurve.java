@@ -1,6 +1,6 @@
 package com.android.nQuant;
 /* Generalized Hilbert ("gilbert") space-filling curve for rectangular domains of arbitrary (non-power of two) sizes.
-Copyright (c) 2021 - 2023 Miller Cy Chan
+Copyright (c) 2021 - 2025 Miller Cy Chan
 * A general rectangle with a known orientation is split into three regions ("up", "right", "down"), for which the function calls itself recursively, until a trivial path can be produced. */
 
 import android.graphics.Color;
@@ -32,6 +32,7 @@ public class GilbertCurve {
 	}
 
 	private byte ditherMax, DITHER_MAX;
+	private float beta;
 	private float[] weights;
 	private final boolean sortedByYDiff;
 	private final int width;
@@ -55,11 +56,15 @@ public class GilbertCurve {
 		this.palette = palette;
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
-		this.saliencies = saliencies;
 		boolean hasAlpha = weight < 0;
+		this.saliencies = hasAlpha ? null : saliencies;
 		weight = Math.abs(weight);
-		margin = weight < .0025 ? 12 : 6;
+		margin = weight < .0025 ? 12 : weight < .004 ? 8 : 6;
 		sortedByYDiff = palette.length >= 128 && (hasAlpha ? weight < .18 : weight >= .052);
+		beta = palette.length > 8 ? (float) Math.max(.25, 1 - (.022f + weight) * palette.length) : 1;
+		if(palette.length > 64 || weight > .02)
+			beta *= .4f;
+
 		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
 
 			@Override
@@ -74,7 +79,7 @@ public class GilbertCurve {
 		double deviation = weight > .002 ? -.25 : 1;
 		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge * deviation) : DITHER_MAX;
 		final int density = palette.length > 16 ? 3200 : 1500;
-		if(weight < .03 && palette.length / weight > 5000 && (weight > .045 || (weight > .01 && palette.length <= 64)))
+		if(weight < .03 && palette.length / weight > 5000 && weight > .01 && palette.length <= 64)
 			ditherMax = (byte) BitmapUtilities.sqr(5 + edge);
 		else if(palette.length / weight < density && palette.length >= 16 && palette.length < 256)
 			ditherMax = (byte) BitmapUtilities.sqr(5 + edge);
@@ -108,13 +113,40 @@ public class GilbertCurve {
 		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
 
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-		if (palette.length <= 32 && a_pix > 0xF0) {
+		if (saliencies != null && !sortedByYDiff) {
+			final float strength = 1 / 3f;
+			final int acceptedDiff = Math.max(2, palette.length - margin);
+			if (palette.length <= 8 && saliencies[bidx] > .2f && saliencies[bidx] < .25f)
+				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta / saliencies[bidx], strength, x, y);
+			else if (palette.length <= 8 || CIELABConvertor.Y_Diff(pixel, c2) < (2 * acceptedDiff))
+				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
+			
+			if (palette.length < 3 || margin > 6) {
+				if (palette.length > 8 && (CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff) || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
+					float kappa = saliencies[bidx] < .25f ? beta * .4f * saliencies[bidx] : beta * .4f / saliencies[bidx];
+					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
+					c2 = BlueNoise.diffuse(c1, palette[qPixels[bidx]], kappa, strength, x, y);
+				}
+			}
+			else if (palette.length > 8 && (CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff) || CIELABConvertor.U_Diff(pixel, c2) > acceptedDiff)) {
+				if(beta < .3f && (palette.length <= 32 || saliencies[bidx] < beta))
+					c2 = BlueNoise.diffuse(c2, palette[qPixels[bidx]], beta * .4f * saliencies[bidx], strength, x, y);
+				else
+					c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
+			}
+
+			int offset = ditherable.getColorIndex(c2);
+			if (lookup[offset] == 0)
+				lookup[offset] = ditherable.nearestColorIndex(palette, c2, bidx) + 1;
+			qPixels[bidx] = palette[lookup[offset] - 1];
+		}
+		else if (palette.length <= 32 && a_pix > 0xF0) {
 			int offset = ditherable.getColorIndex(c2);
 			if (lookup[offset] == 0)
 				lookup[offset] = ditherable.nearestColorIndex(palette, c2, bidx) + 1;
 			qPixels[bidx] = palette[lookup[offset] - 1];
 
-			int acceptedDiff = Math.max(2, palette.length - margin);
+			final int acceptedDiff = Math.max(2, palette.length - margin);
 			if(saliencies != null && (CIELABConvertor.Y_Diff(pixel, c2) > acceptedDiff || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
 				final float strength = 1 / 3f;
 				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
