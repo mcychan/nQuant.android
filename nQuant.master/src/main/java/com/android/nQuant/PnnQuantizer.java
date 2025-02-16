@@ -26,7 +26,7 @@ public class PnnQuantizer {
 
 	protected double PR = 0.299, PG = 0.587, PB = 0.114, PA = .3333;
 	protected double ratio = .5, weight = 1;
-	private static final float[][] coeffs = new float[][] {
+	protected static final float[][] coeffs = new float[][] {
 		{0.299f, 0.587f, 0.114f},
 		{-0.14713f, -0.28886f, 0.436f},
 		{0.615f, -0.51499f, -0.10001f}
@@ -460,9 +460,7 @@ public class PnnQuantizer {
 			palette[k] = m_transparentColor;
 		}
 
-		if (m_transparentPixelIndex >= 0)
-			return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
-		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.RGB_565);
+		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
 	}
 	
 	public boolean hasAlpha() {

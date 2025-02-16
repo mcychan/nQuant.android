@@ -24,12 +24,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	public PnnLABQuantizer(String fname) throws IOException {
 		super(fname);
 	}
-	
-	private static final float[][] coeffs = new float[][] {
-		{0.299f, 0.587f, 0.114f},
-		{-0.14713f, -0.28886f, 0.436f},
-		{0.615f, -0.51499f, -0.10001f}
-	};
 
 	private static final class Pnnbin {
 		float ac = 0, Lc = 0, Ac = 0, Bc = 0, err = 0;
@@ -119,7 +113,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		bin1.err = (float) err;
 		bin1.nn = nn;
 	}
-	
+
+	@Override
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (quan_rt > 1)
