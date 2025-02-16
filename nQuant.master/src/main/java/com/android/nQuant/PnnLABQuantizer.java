@@ -184,7 +184,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight < .001 || (weight > .0015 && weight < .0022))
 			quan_rt = 2;
-		if (nMaxColors < 16 && PG < 1 && PG >= coeffs[0][1]) {
+		if (weight < .04 && PG < 1 && PG >= coeffs[0][1]) {
 			double delta = Math.exp(1.75) * weight;
 			PG -= delta;
 			PB += delta;
@@ -413,7 +413,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected short closestColorIndex(final Integer[] palette, int c, final int pos)
 	{
-		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
 		
@@ -423,10 +422,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			closest[2] = closest[3] = Integer.MAX_VALUE;
 			
 			int start = 0;
-			if(BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
+			if(Color.alpha(c) > 0xE0 && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
 				start = 1;
 
-			for (; k < palette.length; ++k) {
+			for (short k = 0; k < palette.length; ++k) {
 				int c2 = palette[k];
 
 				double err = PR * (1 - ratio) * BitmapUtilities.sqr(Color.red(c2) - Color.red(c));
