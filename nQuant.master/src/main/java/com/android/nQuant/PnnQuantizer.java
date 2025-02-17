@@ -443,6 +443,7 @@ public class PnnQuantizer {
 			palette = pnnquan(pixels, nMaxColors);
 		else {
 			palette = new Integer[nMaxColors];
+			weight = 1;
 			if (m_transparentPixelIndex >= 0) {
 				palette[0] = m_transparentColor;
 				palette[1] = Color.BLACK;
@@ -454,12 +455,6 @@ public class PnnQuantizer {
 		}		
 
 		int[] qPixels = dither(pixels, palette, width, height, dither);
-		if (hasAlpha() && nMaxColors > 2)
-		{
-			int k = qPixels[m_transparentPixelIndex];
-			palette[k] = m_transparentColor;
-		}
-
 		return Bitmap.createBitmap(qPixels, width, height, Bitmap.Config.ARGB_8888);
 	}
 	

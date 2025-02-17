@@ -86,19 +86,19 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (nerr > err)
 				continue;
 
-			double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
+			float deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 			nerr += ratio * nerr2 * BitmapUtilities.sqr(deltaL_prime_div_k_L_S_L);
 			if (nerr > err)
 				continue;
 
 			MutableDouble a1Prime = new MutableDouble(), a2Prime = new MutableDouble(), CPrime1 = new MutableDouble(), CPrime2 = new MutableDouble();
-			double deltaC_prime_div_k_L_S_L = CIELABConvertor.C_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2);
+			float deltaC_prime_div_k_L_S_L = CIELABConvertor.C_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2);
 			nerr += ratio * nerr2 * BitmapUtilities.sqr(deltaC_prime_div_k_L_S_L);
 			if (nerr > err)
 				continue;
 
 			MutableDouble barCPrime = new MutableDouble(), barhPrime = new MutableDouble();
-			double deltaH_prime_div_k_L_S_L = CIELABConvertor.H_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, barCPrime, barhPrime);
+			float deltaH_prime_div_k_L_S_L = CIELABConvertor.H_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, barCPrime, barhPrime);
 			nerr += ratio * nerr2 * BitmapUtilities.sqr(deltaH_prime_div_k_L_S_L);
 			if (nerr > err)
 				continue;
@@ -130,7 +130,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected Integer[] pnnquan(final int[] pixels, int nMaxColors)
 	{
-		short quan_rt = (short) 0;
+		short quan_rt = (short) 1;
 		Pnnbin[] bins = new Pnnbin[65536];
 		saliencies = nMaxColors >= 128 ? null : new float[pixels.length];
 		float saliencyBase = .1f;
@@ -142,18 +142,18 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				pixel = m_transparentColor;
 			
 			int index = BitmapUtilities.getColorIndex(pixel, hasSemiTransparency, nMaxColors < 64 || m_transparentPixelIndex >= 0);
-
 			Lab lab1 = getLab(pixel);
+
 			if(bins[index] == null)
 				bins[index] = new Pnnbin();
 			Pnnbin tb = bins[index];
-			tb.ac += (float) lab1.alpha;
-			tb.Lc += (float) lab1.L;
-			tb.Ac += (float) lab1.A;
-			tb.Bc += (float) lab1.B;
+			tb.ac += lab1.alpha;
+			tb.Lc += lab1.L;
+			tb.Ac += lab1.A;
+			tb.Bc += lab1.B;
 			tb.cnt += 1.0f;
 			if(saliencies != null && lab1.alpha > alphaThreshold)
-				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
+				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f;
 		}
 
 		/* Cluster nonempty bins at one end of array */
@@ -163,7 +163,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			if (bins[i] == null)
 				continue;
 
-			float d = 1f / (float)bins[i].cnt;
+			float d = 1f / bins[i].cnt;
 			bins[i].ac *= d;
 			bins[i].Lc *= d;
 			bins[i].Ac *= d;
@@ -176,7 +176,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if((m_transparentPixelIndex >= 0 || hasSemiTransparency) && nMaxColors < 32)
 			quan_rt = -1;
 		
-		double weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
+		weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
 		if (weight < .001 || (weight > .0015 && weight < .0022))
 			quan_rt = 2;
 		if (weight < .04 && PG < 1 && PG >= coeffs[0][1]) {
@@ -376,19 +376,19 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				curdist += Math.sqrt(BitmapUtilities.sqr(lab2.A - lab1.A) + BitmapUtilities.sqr(lab2.B - lab1.B));
 			}
 			else {
-				double deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
+				float deltaL_prime_div_k_L_S_L = CIELABConvertor.L_prime_div_k_L_S_L(lab1, lab2);
 				curdist += BitmapUtilities.sqr(deltaL_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
 
 				MutableDouble a1Prime = new MutableDouble(), a2Prime = new MutableDouble(), CPrime1 = new MutableDouble(), CPrime2 = new MutableDouble();
-				double deltaC_prime_div_k_L_S_L = CIELABConvertor.C_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2);
+				float deltaC_prime_div_k_L_S_L = CIELABConvertor.C_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2);
 				curdist += BitmapUtilities.sqr(deltaC_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
 
 				MutableDouble barCPrime = new MutableDouble(), barhPrime = new MutableDouble();
-				double deltaH_prime_div_k_L_S_L = CIELABConvertor.H_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, barCPrime, barhPrime);
+				float deltaH_prime_div_k_L_S_L = CIELABConvertor.H_prime_div_k_L_S_L(lab1, lab2, a1Prime, a2Prime, CPrime1, CPrime2, barCPrime, barhPrime);
 				curdist += BitmapUtilities.sqr(deltaH_prime_div_k_L_S_L);
 				if (curdist > mindist)
 					continue;
@@ -504,14 +504,14 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if(hasSemiTransparency)
 			weight *= -1;
 
-		if(dither && !hasSemiTransparency && saliencies == null && weight < .052) {
+		if(dither && !hasSemiTransparency && saliencies == null && (weight < .052 || weight > .99)) {
 			saliencies = new float[pixels.length];
 			float saliencyBase = .1f;
 
 			for (int i = 0; i < pixels.length; ++i) {
 				Lab lab1 = getLab(pixels[i]);
 
-				saliencies[i] = (float) (saliencyBase + (1 - saliencyBase) * lab1.L / 100f);
+				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f;
 			}
 		}
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight);
