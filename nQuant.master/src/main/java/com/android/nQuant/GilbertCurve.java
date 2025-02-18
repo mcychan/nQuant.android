@@ -121,7 +121,7 @@ public class GilbertCurve {
 			else if (palette.length <= 8 || CIELABConvertor.Y_Diff(pixel, c2) < (2 * acceptedDiff)) {
 				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
 				if (CIELABConvertor.U_Diff(pixel, c2) > (8 * acceptedDiff))
-					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta / saliencies[bidx], strength, x, y);
+					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * 1.25f / saliencies[bidx], strength, x, y);
 			}
 			
 			if (palette.length < 3 || margin > 6) {
