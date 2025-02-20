@@ -124,7 +124,7 @@ public class GilbertCurve {
 					int c1 = saliencies[bidx] > .65f ? pixel : Color.argb(a_pix, r_pix, g_pix, b_pix);
 					c2 = BlueNoise.diffuse(c1, palette[qPixels[bidx]], beta * saliencies[bidx], strength, x, y);
 				}
-				if (CIELABConvertor.U_Diff(pixel, c2) > (8 * acceptedDiff))
+				if (CIELABConvertor.U_Diff(pixel, c2) > (margin * acceptedDiff))
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta / saliencies[bidx], strength, x, y);
 			}
 			
