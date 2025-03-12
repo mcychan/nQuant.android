@@ -34,7 +34,7 @@ public class GilbertCurve {
 	private byte ditherMax, DITHER_MAX;
 	private float beta;
 	private float[] weights;
-	private final boolean sortedByYDiff;
+	private final boolean dither, sortedByYDiff;
 	private final int width;
 	private final int height;
 	private final int[] pixels;
