@@ -48,7 +48,7 @@ public class GilbertCurve {
 	private final int margin, thresold;
 	private static final float BLOCK_SIZE = 343f;
 
-	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float[] saliencies, double weight)
+	private GilbertCurve(final int width, final int height, final int[] image, final Integer[] palette, final int[] qPixels, final Ditherable ditherable, final float[] saliencies, double weight, boolean dither)
 	{
 		this.width = width;
 		this.height = height;
@@ -58,6 +58,7 @@ public class GilbertCurve {
 		this.ditherable = ditherable;
 		boolean hasAlpha = weight < 0;
 		this.saliencies = hasAlpha ? null : saliencies;
+		this.dither = dither;
 		weight = Math.abs(weight);
 		margin = weight < .0025 ? 12 : weight < .004 ? 8 : 6;
 		sortedByYDiff = palette.length >= 128 && (hasAlpha ? weight < .18 : weight >= .052);
@@ -84,7 +85,7 @@ public class GilbertCurve {
 			
 		}) : new ArrayDeque<>();
 		
-		DITHER_MAX = weight < .01 ? (weight > .0025) ? (byte) 25 : 16 : 9;
+		DITHER_MAX = weight < .015 ? (weight > .0025) ? (byte) 25 : 16 : 9;
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
 		double deviation = weight > .002 ? -.25 : 1;
 		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge * deviation) : DITHER_MAX;
@@ -123,7 +124,7 @@ public class GilbertCurve {
 		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
 
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-		if (saliencies != null && !sortedByYDiff) {
+		if (saliencies != null && dither && !sortedByYDiff) {
 			final float strength = 1 / 3f;
 			final int acceptedDiff = Math.max(2, palette.length - margin);
 			if (palette.length <= 4 && saliencies[bidx] > .2f && saliencies[bidx] < .25f)
@@ -151,6 +152,9 @@ public class GilbertCurve {
 				else
 					c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 			}
+
+			if (DITHER_MAX < 16 && saliencies[bidx] < .6f && CIELABConvertor.Y_Diff(pixel, c2) > margin - 1)
+				c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 
 			int offset = ditherable.getColorIndex(c2);
 			if (lookup[offset] == 0)
@@ -288,10 +292,10 @@ public class GilbertCurve {
 			generate2d(0, 0, 0, height, width, 0);
 	}
 
-	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight)
+	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight, final boolean dither)
 	{
 		int[] qPixels = new int[pixels.length];
-		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight).run();
+		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight, dither).run();
 		return qPixels;
 	}
 }

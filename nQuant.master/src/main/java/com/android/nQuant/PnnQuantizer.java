@@ -398,9 +398,9 @@ public class PnnQuantizer {
 		Ditherable ditherable = getDitherFn(dither);
 		if(hasSemiTransparency)
 			weight *= -1;
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, null, weight);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, null, weight, dither);
 
-		if(!dither)
+		if (!dither && palette.length > 32)
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);
 
 		closestMap.clear();

@@ -514,9 +514,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f;
 			}
 		}
-		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight);
+		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight, dither);
 
-		if(!dither) {
+		if (!dither && palette.length > 32) {
 			double delta = BitmapUtilities.sqr(palette.length) / pixelMap.size();
 			float weight = delta > 0.023 ? 1.0f : (float) (37.013 * delta + 0.906);
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, weight);
