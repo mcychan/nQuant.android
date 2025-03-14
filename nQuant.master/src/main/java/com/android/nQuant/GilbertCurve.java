@@ -65,7 +65,7 @@ public class GilbertCurve {
 		beta = palette.length > 4 ? (float) (.6f - .00625f * palette.length) : 1;
 		if (palette.length > 4) {
 			double boundary = .005 - .0000625 * palette.length;
-			beta = (float) (weight > boundary ? Math.max(.25, beta - palette.length * weight) : Math.min(1.5, beta + palette.length * weight));
+			beta = (float) (weight > boundary ? .25 : Math.min(1.5, beta + palette.length * weight));
 			if(palette.length > 32)
 				beta += .1f;
 			else if (palette.length < 16)
@@ -142,7 +142,7 @@ public class GilbertCurve {
 			if (palette.length < 3 || margin > 6) {
 				if (palette.length > 8 && (CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff) || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
 					float kappa = saliencies[bidx] < .4f ? beta * .4f * saliencies[bidx] : beta * .4f / saliencies[bidx];
-					int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
+					int c1 = saliencies[bidx] < .6f ? pixel : Color.argb(a_pix, r_pix, g_pix, b_pix);
 					c2 = BlueNoise.diffuse(c1, palette[qPixels[bidx]], kappa, strength, x, y);
 				}
 			}
