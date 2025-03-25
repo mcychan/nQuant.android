@@ -261,11 +261,10 @@ public class PnnQuantizer {
 		/* Fill palette */
 		Integer[] palette = new Integer[extbins > 0 ? nMaxColors : maxbins];
 		short k = 0;
-		for (int i = 0;; ++k) {
+		for (int i = 0; k < palette.length; ++k) {
 			palette[k] = Color.argb((int) bins[i].ac, (int) bins[i].rc, (int) bins[i].gc, (int) bins[i].bc);
 
-			if ((i = bins[i].fw) == 0)
-				break;
+			i = bins[i].fw;
 		}
 
 		return palette;
