@@ -407,6 +407,9 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected short closestColorIndex(final Integer[] palette, int c, final int pos)
 	{
+		if (PG < coeffs[0][1] && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
+			return nearestColorIndex(palette, c, pos);
+		
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
 		
@@ -414,10 +417,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		if (closest == null) {
 			closest = new int[4];
 			closest[2] = closest[3] = Integer.MAX_VALUE;
-			
-			int start = 0;
-			if(Color.alpha(c) > 0xE0 && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
-				start = 1;
 
 			for (short k = 0; k < palette.length; ++k) {
 				int c2 = palette[k];
@@ -434,12 +433,10 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				if (err >= closest[3])
 					continue;
 				
-				if(hasSemiTransparency) {
-					err += PA * (1 - ratio) * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
-					start = 1;
-				}
+				if(hasSemiTransparency)
+					err += PA * BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c));
 				
-				for (int i = start; i < coeffs.length; ++i) {
+				for (int i = 0; i < coeffs.length; ++i) {
 					err += ratio * BitmapUtilities.sqr(coeffs[i][0] * (Color.red(c2) - Color.red(c)));
 					if (err >= closest[3])
 						break;
@@ -468,15 +465,12 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			
 			closestMap.put(c, closest);
 		}
-
-		int MAX_ERR = palette.length;
-		if(PG < coeffs[0][1] && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
-			return nearestColorIndex(palette, c, pos);
 		
 		int idx = 1;
 		if (closest[2] == 0 || (random.nextInt(32767) % (closest[3] + closest[2])) <= closest[3])
 			idx = 0;
 
+		int MAX_ERR = palette.length;
 		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx] == 0))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
