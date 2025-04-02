@@ -142,7 +142,7 @@ public class GilbertCurve {
 		return palette[lookup[offset] - 1];
 	}
 
-	private void ditherPixel(int x, int y) {
+	private void diffusePixel(int x, int y) {
 		final int bidx = x + y * width;
 		final int pixel = pixels[bidx];
 		ErrorBox error = new ErrorBox(pixel);
@@ -233,7 +233,7 @@ public class GilbertCurve {
 
 		if (h == 1) {
 			for (int i = 0; i < w; ++i){
-				ditherPixel(x, y);
+				diffusePixel(x, y);
 				x += dax;
 				y += day;
 			}
@@ -242,7 +242,7 @@ public class GilbertCurve {
 
 		if (w == 1) {
 			for (int i = 0; i < h; ++i){
-				ditherPixel(x, y);
+				diffusePixel(x, y);
 				x += dbx;
 				y += dby;
 			}
