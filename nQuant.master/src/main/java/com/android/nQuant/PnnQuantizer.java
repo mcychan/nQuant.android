@@ -76,7 +76,6 @@ public class PnnQuantizer {
 			
 			double nerr = 0.0;
 			if(hasSemiTransparency) {
-				start = 1;
 				nerr += nerr2 * PA * BitmapUtilities.sqr(bins[i].ac - wa);
 				if (nerr >= err)
 					continue;
