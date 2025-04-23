@@ -68,6 +68,10 @@ public class PnnQuantizer {
 		double wr = bin1.rc;
 		double wg = bin1.gc;
 		double wb = bin1.bc;
+
+		int start = 0;
+		if(BlueNoise.TELL_BLUE_NOISE[idx & 4095] > -88)
+			start = (PG < coeffs[0][1]) ? coeffs.length : 1;
 		
 		for (int i = bin1.fw; i != 0; i = bins[i].fw) {
 			double n2 = bins[i].cnt, nerr2 = (n1 * n2) / (n1 + n2);
@@ -93,7 +97,7 @@ public class PnnQuantizer {
 			if (nerr >= err)
 				continue;
 			
-			for (int j = 0; j < coeffs.length; ++j) {
+			for (int j = start; j < coeffs.length; ++j) {
 				nerr += nerr2 * ratio * BitmapUtilities.sqr(coeffs[j][0] * (bins[i].rc - wr));
 				if (nerr >= err)
 					break;
