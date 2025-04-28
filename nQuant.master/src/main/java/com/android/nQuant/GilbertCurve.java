@@ -150,11 +150,11 @@ public class GilbertCurve {
 
 		float maxErr = DITHER_MAX - 1;
 		int i = sortedByYDiff ? weights.length - 1 : 0;
-		for(ErrorBox eb : errorq) {
-			if(i < 0 || i >= weights.length)
+		for (ErrorBox eb : errorq) {
+			if (i < 0 || i >= weights.length)
 				break;
 
-			for(int j = 0; j < eb.p.length; ++j) {
+			for (int j = 0; j < eb.p.length; ++j) {
 				error.p[j] += eb.p[j] * weights[i];
 				if(error.p[j] > maxErr)
 					maxErr = error.p[j];
@@ -204,8 +204,8 @@ public class GilbertCurve {
 
 		boolean unaccepted = false;
 		int errLength = denoise ? error.p.length - 1 : 0;
-		for(int j = 0; j < errLength; ++j) {
-			if(Math.abs(error.p[j]) >= ditherMax) {
+		for (int j = 0; j < errLength; ++j) {
+			if (Math.abs(error.p[j]) >= ditherMax) {
 				if (sortedByYDiff && saliencies != null)
 					unaccepted = true;
 
@@ -224,7 +224,6 @@ public class GilbertCurve {
 		if (unaccepted) {
 			if (saliencies != null)
 				qPixels[bidx] = ditherPixel(x, y, c2, 1.25f);
-			}
 			else if (CIELABConvertor.Y_Diff(pixel, c2) > 3 && CIELABConvertor.U_Diff(pixel, c2) > 3) {
 				final float strength = 1 / 3f;
 				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], strength, strength, x, y);
