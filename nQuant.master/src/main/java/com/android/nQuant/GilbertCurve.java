@@ -134,7 +134,9 @@ public class GilbertCurve {
 				c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		}
 
-		if (DITHER_MAX < 16 && saliencies[bidx] < .6f && CIELABConvertor.Y_Diff(pixel, c2) > margin - 1)
+		if (DITHER_MAX < 16 && palette.length > 4 && saliencies[bidx] < .6f && CIELABConvertor.Y_Diff(pixel, c2) > margin - 1)
+			c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
+		if (beta > 1f && CIELABConvertor.Y_Diff(pixel, c2) > DITHER_MAX)
 			c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 
 		int offset = ditherable.getColorIndex(c2);
