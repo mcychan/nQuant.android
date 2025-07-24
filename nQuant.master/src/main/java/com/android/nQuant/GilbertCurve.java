@@ -66,9 +66,9 @@ public class GilbertCurve {
 		if (palette.length > 4) {
 			double boundary = .005 - .0000625 * palette.length;
 			beta = (float) (weight > boundary ? .25 : Math.min(1.5, beta + palette.length * weight));
-			if(palette.length > 32 && palette.length < 256)
+			if (palette.length > 32 && palette.length < 256)
 				beta += .1f;
-			if(palette.length >= 64 && weight > .006 && weight < .0125)
+			if (palette.length >= 64 && (weight > .01 && weight < .0125) || (weight > .025 && weight < .03))
 				beta = .7f;
 		}
 		else
