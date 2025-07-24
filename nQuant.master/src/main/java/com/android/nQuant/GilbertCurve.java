@@ -69,7 +69,7 @@ public class GilbertCurve {
 			if (palette.length > 32 && palette.length < 256)
 				beta += .1f;
 			if (palette.length >= 64 && (weight > .012 && weight < .0125) || (weight > .025 && weight < .03))
-				beta *= .2f;
+				beta *= 2f;
 		}
 		else
 			beta *= .95f;
