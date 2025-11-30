@@ -34,7 +34,7 @@ public class GilbertCurve {
 	private byte ditherMax, DITHER_MAX;
 	private float beta;
 	private float[] weights;
-	private final boolean dither, sortedByYDiff;
+	private final boolean dither, hasAlpha, sortedByYDiff;
 	private final int width, height;
 	private final double weight;
 	private final int[] pixels;
@@ -56,7 +56,7 @@ public class GilbertCurve {
 		this.palette = palette;
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
-		boolean hasAlpha = weight < 0;
+		this.hasAlpha = weight < 0;
 		this.saliencies = saliencies;
 		this.dither = dither;
 		this.weight = Math.abs(weight);
@@ -174,7 +174,7 @@ public class GilbertCurve {
 		int a_pix = (int) Math.min(BYTE_MAX, Math.max(error.p[3], 0.0));
 
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-		if (saliencies != null && dither && !sortedByYDiff && Color.alpha(pixel) < a_pix)
+		if (saliencies != null && dither && !sortedByYDiff && (!hasAlpha || Color.alpha(pixel) < a_pix))
 			qPixels[bidx] = ditherPixel(x, y, c2, beta);
 		else if (palette.length <= 32 && a_pix > 0xF0) {
 			int offset = ditherable.getColorIndex(c2);
@@ -213,7 +213,7 @@ public class GilbertCurve {
 		for (int j = 0; j < errLength; ++j) {
 			if (Math.abs(error.p[j]) >= ditherMax) {
 				if (sortedByYDiff && saliencies != null)
-					unaccepted = Color.alpha(pixel) < a_pix;
+					unaccepted = true;
 
 				if (diffuse)
 					error.p[j] = (float) Math.tanh(error.p[j] / maxErr * 20) * (ditherMax - 1);
@@ -224,7 +224,7 @@ public class GilbertCurve {
 			}
 
 			if (sortedByYDiff && saliencies == null && Math.abs(error.p[j]) >= DITHER_MAX)
-				unaccepted = Color.alpha(pixel) < a_pix;
+				unaccepted = true;
 		}
 
 		if (unaccepted) {
