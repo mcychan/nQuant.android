@@ -80,6 +80,10 @@ public class GilbertCurve {
 			beta *= .4f;
 		if (palette.length > 64 && weight < .02)
 			beta = .2f;
+		else if (palette.length < 64 && weight < .0008)
+			beta = 2.5f;
+		else if (palette.length > 32 && weight < .015)
+			beta = .55f;
 
 		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
 
@@ -138,15 +142,19 @@ public class GilbertCurve {
 			if (palette.length > 4 && CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff)) {
 				float kappa = saliencies[bidx] < .4f ? beta * .4f * saliencies[bidx] : beta * .4f / saliencies[bidx];
 				int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
-				if (palette.length > 32)
+				if (palette.length > 32 && saliencies[bidx] < .9)
 					kappa = beta * normalDistribution(beta, 2f) * saliencies[bidx];
 				else {
 					if (weight >= .0015 && saliencies[bidx] < .6)
 						c1 = pixel;
 					if (saliencies[bidx] < .6)
-						kappa = beta * normalDistribution(beta, 1.75f) * saliencies[bidx];
-					else if (CIELABConvertor.Y_Diff(c1, c2) > (beta * Math.PI * acceptedDiff))
-						kappa = beta * (!sortedByYDiff && weight < .0025 ? .55f : .5f) / saliencies[bidx];
+						kappa = beta * normalDistribution(beta, weight < .0008 ? 2.5f : 1.75f) * saliencies[bidx];
+					else if (palette.length >= 32 || CIELABConvertor.Y_Diff(c1, c2) > (beta * Math.PI * acceptedDiff)) {
+						if (saliencies[bidx] < .9)
+							kappa = beta * (!sortedByYDiff && weight < .0025 ? .55f : .5f) / saliencies[bidx];
+						else
+							kappa = beta * normalDistribution(beta, !sortedByYDiff && weight < .0025 ? .55f : .5f) / saliencies[bidx];
+					}
 				}
 
 				c2 = BlueNoise.diffuse(c1, palette[qPixels[bidx]], kappa, strength, x, y);
