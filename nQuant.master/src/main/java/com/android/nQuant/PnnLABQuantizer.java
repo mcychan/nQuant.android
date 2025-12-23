@@ -215,7 +215,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		}
 		bins[j].cnt = quanFn.get(bins[j].cnt);
 
-		final boolean texicab = proportional > .0275;
+		final boolean texicab = quan_rt < 2;
 		
 		if(hasSemiTransparency)
 			ratio = .5;
@@ -277,7 +277,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 					b1 = heap[1] = heap[heap[0]--];
 				else /* Too old error value */
 				{
-					find_nn(bins, b1, texicab && proportional < 1);
+					find_nn(bins, b1, texicab);
 					tb.tm = i;
 				}
 				/* Push slot down */
