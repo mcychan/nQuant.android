@@ -1,7 +1,7 @@
 package com.android.nQuant;
 
 /* Fast pairwise nearest neighbor based algorithm with CIELAB color space advanced version
-Copyright (c) 2018-2025 Miller Cy Chan
+Copyright (c) 2018-2026 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
 import android.graphics.Color;
@@ -340,7 +340,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 		double mindist = Integer.MAX_VALUE;
 		Lab lab1 = getLab(c);
-		for (short i=k; i<palette.length; ++i) {
+		for (short i = k; i < palette.length; ++i) {
 			int c2 = palette[i];
 
 			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.5) : 0;
@@ -404,9 +404,6 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected short closestColorIndex(final Integer[] palette, int c, final int pos)
 	{
-		if (PG < coeffs[0][1] && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
-			return nearestColorIndex(palette, c, pos);
-		
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
 		
@@ -482,6 +479,8 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			@Override
 			public short nearestColorIndex(Integer[] palette, int c, final int pos) {
+				if (hasAlpha() || palette.length <= 4)
+					return PnnLABQuantizer.this.nearestColorIndex(palette, c, pos);
 				return PnnLABQuantizer.this.closestColorIndex(palette, c, pos);
 			}
 		};
