@@ -468,7 +468,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			idx = 0;
 
 		int MAX_ERR = palette.length;
-		if(closest[idx + 2] >= MAX_ERR || (hasAlpha() && closest[idx] == 0))
+		if(closest[idx + 2] >= MAX_ERR || closest[idx] == 0 || Color.alpha(palette[closest[idx]]) < Color.alpha(c))
 			return nearestColorIndex(palette, c, pos);
 		return (short) closest[idx];
 	}
@@ -482,7 +482,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			@Override
 			public short nearestColorIndex(Integer[] palette, int c, final int pos) {
-				if (hasAlpha() || palette.length <= 4)
+				if (palette.length <= 4)
 					return PnnLABQuantizer.this.nearestColorIndex(palette, c, pos);
 				return PnnLABQuantizer.this.closestColorIndex(palette, c, pos);
 			}
