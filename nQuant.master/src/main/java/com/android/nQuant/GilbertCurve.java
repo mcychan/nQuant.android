@@ -356,13 +356,13 @@ public class GilbertCurve {
 			generate2d(0, 0, 0, height, width, 0);
 	}
 
-    private static int[] processImagePixels(final Integer[] palette, int[] qPixels) {
-        int[] qPixel32s = new int[qPixels.length];
-        for (var i = 0; i < qPixels.length; ++i)
-            qPixel32s[i] = palette[qPixels[i]];
+	private static int[] processImagePixels(final Integer[] palette, final int[] qPixels) {
+		int[] qPixel32s = new int[qPixels.length];
+		for (var i = 0; i < qPixels.length; ++i)
+			qPixel32s[i] = palette[qPixels[i]];
 
-        return qPixel32s;
-    }
+		return qPixel32s;
+	}
 
 	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight, final boolean dither) throws Exception
 	{
