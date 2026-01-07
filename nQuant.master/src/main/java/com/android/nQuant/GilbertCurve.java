@@ -12,7 +12,7 @@ import java.util.Queue;
 import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
 
 public class GilbertCurve {
-	
+
 	private static final class ErrorBox
 	{
 		private double yDiff = 0;
@@ -368,6 +368,7 @@ public class GilbertCurve {
 	{
         int[] qPixels = new int[pixels.length];
 		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight, dither).run();
-		return processImagePixels(palette, qPixels);
+
+		return dither ? processImagePixels(palette, qPixels) : qPixels;
 	}
 }
