@@ -10,7 +10,6 @@ import com.android.nQuant.CIELABConvertor.Lab;
 import com.android.nQuant.CIELABConvertor.MutableDouble;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -490,7 +489,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	}
 
 	@Override
-	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither)
+	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither) throws Exception
 	{
 		Ditherable ditherable = getDitherFn();
 		if(hasSemiTransparency)

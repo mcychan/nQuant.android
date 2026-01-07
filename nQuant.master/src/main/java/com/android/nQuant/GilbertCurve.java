@@ -1,6 +1,6 @@
 package com.android.nQuant;
 /* Generalized Hilbert ("gilbert") space-filling curve for rectangular domains of arbitrary (non-power of two) sizes.
-Copyright (c) 2021 - 2025 Miller Cy Chan
+Copyright (c) 2021 - 2026 Miller Cy Chan
 * A general rectangle with a known orientation is split into three regions ("up", "right", "down"), for which the function calls itself recursively, until a trivial path can be produced. */
 
 import android.graphics.Color;
@@ -203,7 +203,7 @@ public class GilbertCurve {
 		int c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		if (saliencies != null && dither && !sortedByYDiff && (!hasAlpha || Color.alpha(pixel) < a_pix)) {
 			if (palette.length > 32 && saliencies[bidx] > .99f)
-				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
+				qPixels[bidx] = ditherable.nearestColorIndex(palette, c2, bidx);
 			else
 				qPixels[bidx] = ditherPixel(x, y, c2, beta);
 		}
@@ -211,24 +211,24 @@ public class GilbertCurve {
 			int offset = ditherable.getColorIndex(c2);
 			if (lookup[offset] == 0)
 				lookup[offset] = ditherable.nearestColorIndex(palette, c2, bidx) + 1;
-			qPixels[bidx] = palette[lookup[offset] - 1];
+			qPixels[bidx] = lookup[offset] - 1;
 
 			final int acceptedDiff = Math.max(2, palette.length - margin);
 			if(saliencies != null && (CIELABConvertor.Y_Diff(pixel, c2) > acceptedDiff || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
 				final float strength = 1 / 3f;
 				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
-				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
+				qPixels[bidx] = ditherable.nearestColorIndex(palette, c2, bidx);
 			}
 		}
 		else
-			qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, c2, bidx)];
+			qPixels[bidx] = ditherable.nearestColorIndex(palette, c2, bidx);
 
 		if(errorq.size() >= DITHER_MAX)
 			errorq.poll();
 		else if(!errorq.isEmpty())
 			initWeights(errorq.size());
 
-		c2 = qPixels[bidx];
+		c2 = palette[qPixels[bidx]];
 		error.p[0] = r_pix - Color.red(c2);
 		error.p[1] = g_pix - Color.green(c2);
 		error.p[2] = b_pix - Color.blue(c2);
@@ -271,7 +271,7 @@ public class GilbertCurve {
 		errorq.add(error);
 	}
 
-	private void generate2d(int x, int y, int ax, int ay, int bx, int by) {
+	private void generate2d(int x, int y, int ax, int ay, int bx, int by) throws Exception {
 		int w = Math.abs(ax + ay);
 		int h = Math.abs(bx + by);
 		int dax = Integer.signum(ax);
@@ -345,7 +345,7 @@ public class GilbertCurve {
 		weights[0] += 1f - weight;
 	}
 
-	private void run()
+	private void run() throws Exception
 	{
 		if(!sortedByYDiff)
 			initWeights(DITHER_MAX);
@@ -356,10 +356,18 @@ public class GilbertCurve {
 			generate2d(0, 0, 0, height, width, 0);
 	}
 
-	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight, final boolean dither)
+    private static int[] processImagePixels(final Integer[] palette, int[] qPixels) {
+        int[] qPixel32s = new int[qPixels.length];
+        for (var i = 0; i < qPixels.length; ++i)
+            qPixel32s[i] = palette[qPixels[i]];
+
+        return qPixel32s;
+    }
+
+	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final float[] saliencies, final double weight, final boolean dither) throws Exception
 	{
-		int[] qPixels = new int[pixels.length];
+        int[] qPixels = new int[pixels.length];
 		new GilbertCurve(width, height, pixels, palette, qPixels, ditherable, saliencies, weight, dither).run();
-		return qPixels;
+		return processImagePixels(palette, qPixels);
 	}
 }

@@ -1,18 +1,15 @@
 package com.android.nQuant;
 /* Fast pairwise nearest neighbor based algorithm for multilevel thresholding
 Copyright (C) 2004-2016 Mark Tyler and Dmitry Groshev
-Copyright (c) 2018-2023 Miller Cy Chan
+Copyright (c) 2018-2026 Miller Cy Chan
 * error measure; time used is proportional to number of bins squared - WJ */
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
 
@@ -35,18 +32,18 @@ public class PnnQuantizer {
 	protected Map<Integer, int[]> closestMap = new HashMap<>();
 	protected Map<Integer, Short> nearestMap = new HashMap<>();
 
-	public PnnQuantizer(String fname) throws IOException {
+	public PnnQuantizer(String fname) {
 		fromBitmap(fname);
 	}
 
-	private void fromBitmap(Bitmap bitmap) throws IOException {
+	private void fromBitmap(Bitmap bitmap) {
 		width = bitmap.getWidth();
 		height = bitmap.getHeight();
 		pixels = new int [width * height];
 		bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
 	}
 
-	private void fromBitmap(String fname) throws IOException {
+	private void fromBitmap(String fname) {
 		Bitmap bitmap = BitmapFactory.decodeFile(fname);
 		fromBitmap(bitmap);
 	}
@@ -122,7 +119,7 @@ public class PnnQuantizer {
 	protected interface QuanFn {
 		float get(float cnt);
 	}
-	
+
 	protected QuanFn getQuanFn(int nMaxColors, short quan_rt) {
 		if (quan_rt > 0) {
 			if (nMaxColors < 64)
@@ -212,7 +209,7 @@ public class PnnQuantizer {
 		/* Merge bins which increase error the least */
 		int extbins = maxbins - nMaxColors;
 		for (int i = 0; i < extbins; ) {
-			Pnnbin tb = null;
+			Pnnbin tb;
 			/* Use heap to find which bins to merge */
 			for (;;) {
 				int b1 = heap[1];
@@ -391,7 +388,7 @@ public class PnnQuantizer {
 		};
 	}
 
-	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither)
+	protected int[] dither(final int[] cPixels, Integer[] palette, int width, int height, boolean dither) throws Exception
 	{
 		Ditherable ditherable = getDitherFn(dither);
 		if(hasSemiTransparency)
@@ -407,7 +404,7 @@ public class PnnQuantizer {
 		return qPixels;
 	}
 
-	public Bitmap convert(int nMaxColors, boolean dither) {
+	public Bitmap convert(int nMaxColors, boolean dither) throws Exception {
 		int semiTransCount = 0;
 		for (int i = 0; i < pixels.length; ++i) {
 			int pixel = pixels[i];

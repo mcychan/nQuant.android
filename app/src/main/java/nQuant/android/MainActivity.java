@@ -202,8 +202,9 @@ public class MainActivity extends AppCompatActivity {
                             if(dialog.isShowing())
                                 dialog.dismiss();
                         });
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        throw new RuntimeException(ex);
                     }
                 });
             } catch (Throwable t) {
