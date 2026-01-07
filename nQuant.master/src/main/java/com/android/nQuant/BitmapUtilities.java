@@ -139,4 +139,12 @@ public class BitmapUtilities {
 
         return qPixels;
     }
+
+    public static int[] processImagePixels(final Integer[] palette, final int[] qPixels) {
+        int[] qPixel32s = new int[qPixels.length];
+        for (var i = 0; i < qPixels.length; ++i)
+            qPixel32s[i] = palette[qPixels[i]];
+
+        return qPixel32s;
+    }
 }

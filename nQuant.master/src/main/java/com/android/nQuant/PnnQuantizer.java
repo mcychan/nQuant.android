@@ -397,6 +397,8 @@ public class PnnQuantizer {
 
 		if (!dither && palette.length > 32)
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);
+        else
+            qPixels = BitmapUtilities.processImagePixels(palette, qPixels);
 
 		closestMap.clear();
 		nearestMap.clear();
