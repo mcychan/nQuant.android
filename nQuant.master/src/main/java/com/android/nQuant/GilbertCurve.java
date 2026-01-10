@@ -269,6 +269,9 @@ public class GilbertCurve {
 		}
 
 		errorq.add(error);
+
+        if (dither || palette.length <= 32)
+            qPixels[bidx] = palette[qPixels[bidx]];
 	}
 
 	private void generate2d(int x, int y, int ax, int ay, int bx, int by) throws Exception {

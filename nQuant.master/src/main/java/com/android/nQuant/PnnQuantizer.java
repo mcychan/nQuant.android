@@ -314,7 +314,7 @@ public class PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
-		
+
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
 			closest = new int[4];
@@ -356,7 +356,7 @@ public class PnnQuantizer {
 
 			if (closest[3] == Integer.MAX_VALUE)
 				closest[1] = closest[0];
-			
+
 			closestMap.put(c, closest);
 		}
 
@@ -397,8 +397,6 @@ public class PnnQuantizer {
 
 		if (!dither && palette.length > 32)
 			BlueNoise.dither(width, height, cPixels, palette, ditherable, qPixels, 1.0f);
-        else
-            qPixels = BitmapUtilities.processImagePixels(palette, qPixels);
 
 		closestMap.clear();
 		nearestMap.clear();
