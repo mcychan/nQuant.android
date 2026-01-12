@@ -268,7 +268,7 @@ public class PnnQuantizer {
 
 	protected short nearestColorIndex(final Integer[] palette, int c, final int pos)
 	{
-		final int offset = BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+		final int offset = palette.length > 32 ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
 		Short got = nearestMap.get(offset);
 		if (got != null)
 			return got;
@@ -316,7 +316,7 @@ public class PnnQuantizer {
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
 
-		final int offset = BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+		final int offset = palette.length > 32 ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
 			closest = new int[4];
