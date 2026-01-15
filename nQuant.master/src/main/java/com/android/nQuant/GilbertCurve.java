@@ -70,7 +70,9 @@ public class GilbertCurve {
 			else if (weight < .0015 || (palette.length > 32 && palette.length < 256))
 				beta += .1f;
 			if (palette.length >= 64 && (weight > .012 && weight < .0125) || (weight > .025 && weight < .03))
-				beta *= 2f;
+				beta += .05f;
+			else if (palette.length > 32 && palette.length < 64 && weight < .015)
+				beta = .55f;
 		}
 		else
 			beta *= .95f;
@@ -79,8 +81,6 @@ public class GilbertCurve {
 			beta *= .4f;
 		if (palette.length > 64 && weight < .02)
 			beta = .2f;
-		else if (palette.length > 32 && palette.length < 64 && weight < .015)
-			beta = .55f;
 
 		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
 
