@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
+	private boolean isNano = false;
 	protected float[] saliencies;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 	
@@ -176,6 +177,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 			quan_rt = -1;
 		
 		weight = Math.min(0.9, nMaxColors * 1.0 / maxbins);
+		isNano = weight <= .015;
 		if ((nMaxColors < 16 && weight < .0075) || weight < .001 || (weight > .0015 && weight < .0022))
 			quan_rt = 2;
 		if (weight < .04 && PG < 1 && PG >= coeffs[0][1]) {
@@ -327,7 +329,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected short nearestColorIndex(final Integer[] palette, int c, final int pos)
 	{
-		final int offset = weight > .015 ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+		final int offset = !isNano ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
 		Short got = nearestMap.get(offset);
 		if (got != null)
 			return got;
@@ -404,13 +406,13 @@ public class PnnLABQuantizer extends PnnQuantizer {
 	@Override
 	protected short closestColorIndex(final Integer[] palette, int c, final int pos)
 	{
-		if (PG < coeffs[0][1] && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > -88)
+		if (PG < 1 && weight > .1 && BlueNoise.TELL_BLUE_NOISE[pos & 4095] > 0)
 			return nearestColorIndex(palette, c, pos);
 
 		if (Color.alpha(c) <= alphaThreshold)
 			return nearestColorIndex(palette, c, pos);
 
-		final int offset = weight > .015 ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
+		final int offset = !isNano ? c : BitmapUtilities.getColorIndex(c, hasSemiTransparency, m_transparentPixelIndex >= 0);
 		int[] closest = closestMap.get(c);
 		if (closest == null) {
 			closest = new int[4];
