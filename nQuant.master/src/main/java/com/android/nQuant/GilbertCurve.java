@@ -80,7 +80,7 @@ public class GilbertCurve {
 		if (palette.length > 64 || (palette.length > 4 && weight > .02))
 			beta *= .4f;
 		if (palette.length > 64 && weight < .02)
-			beta = .2f;
+			beta = .18f;
 
 		errorq = sortedByYDiff ? new PriorityQueue<>(new Comparator<ErrorBox>() {
 
@@ -92,6 +92,11 @@ public class GilbertCurve {
 		}) : new ArrayDeque<>();
 		
 		DITHER_MAX = weight < .015 ? (weight > .0025) ? (byte) 25 : 16 : 9;
+		if (weight > .99) {
+			beta = (float) weight;
+			DITHER_MAX = 25;
+		}
+		
 		double edge = hasAlpha ? 1 : Math.exp(weight) - .25;
 		double deviation = weight > .002 ? -.25 : 1;
 		ditherMax = (hasAlpha || DITHER_MAX > 9) ? (byte) BitmapUtilities.sqr(Math.sqrt(DITHER_MAX) + edge * deviation) : (byte) (DITHER_MAX * (saliencies != null ? 2 : Math.E));
