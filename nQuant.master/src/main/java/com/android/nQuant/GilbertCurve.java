@@ -175,7 +175,7 @@ public class GilbertCurve {
 		}
 
 		if (!sortedByYDiff && palette.length > 32 && (palette.length <= 64 || weight >= .02) && CIELABConvertor.Y_Diff(pixel, c2) > margin - 1)
-			c2 = BlueNoise.diffuse(c2, palette[qPixels[bidx]], beta * normalDistribution(beta, palette.length / 128f) * saliencies[bidx], strength, x, y);
+			c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * normalDistribution(beta, palette.length / 128f) * saliencies[bidx], strength, x, y);
 		if (beta > 1f && CIELABConvertor.Y_Diff(pixel, c2) > DITHER_MAX)
 			c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 
