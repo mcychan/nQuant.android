@@ -138,7 +138,7 @@ public class GilbertCurve {
 					float kappa = saliencies[bidx] < .6f ? beta * .15f / saliencies[bidx] : beta * .4f / saliencies[bidx];
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], kappa, strength, x, y);
 				}
-				else if (saliencies[bidx] < .9f)
+				else
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
 			}
 			if (CIELABConvertor.U_Diff(pixel, c2) > (margin * acceptedDiff))
