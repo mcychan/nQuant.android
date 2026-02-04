@@ -138,7 +138,7 @@ public class GilbertCurve {
 					float kappa = saliencies[bidx] < .6f ? beta * .15f / saliencies[bidx] : beta * .4f / saliencies[bidx];
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], kappa, strength, x, y);
 				}
-				else if (palette.length > 16)
+				else if (palette.length > 16 && palette.length <= 32)
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * normalDistribution(saliencies[bidx], .5f) + beta, strength, x, y);
 				else
 					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
