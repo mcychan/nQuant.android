@@ -147,8 +147,8 @@ public class GilbertCurve {
 			}
 		}
 		
-		if (margin > 6 || (palette.length <= 32 && weight < .01 && weight > .007)) {
-			if (palette.length > 4 && CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff)) {
+		if (palette.length > 4 && CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff)) {
+			if (margin > 6 || (palette.length <= 32 && weight < .01 && weight > .007)) {
 				float kappa = saliencies[bidx] < .4f ? beta * .4f * saliencies[bidx] : beta * .4f / saliencies[bidx];
 				int c1 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 				if (palette.length > 32 && saliencies[bidx] < .9)
@@ -169,9 +169,7 @@ public class GilbertCurve {
 
 				c2 = BlueNoise.diffuse(c1, palette[qPixels[bidx]], kappa, strength, x, y);
 			}
-		}
-		else if (palette.length > 4 && CIELABConvertor.Y_Diff(pixel, c2) > (beta * acceptedDiff)) {
-			if (palette.length <= 32 && weight >= .004)
+			else if (palette.length <= 32 && weight >= .004)
 				c2 = BlueNoise.diffuse(c2, palette[qPixels[bidx]], beta * normalDistribution(saliencies[bidx], .25f), strength, x, y);
 			else
 				c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
