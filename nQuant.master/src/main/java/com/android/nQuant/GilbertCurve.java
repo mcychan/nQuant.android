@@ -135,16 +135,14 @@ public class GilbertCurve {
 		if (palette.length <= 4 && saliencies[bidx] > .2f && saliencies[bidx] < .25f)
 			c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * 2 / saliencies[bidx], strength, x, y);
 		else if (palette.length <= 4 || CIELABConvertor.Y_Diff(pixel, c2) < (2 * acceptedDiff)) {
-			if (palette.length <= 128 || BlueNoise.TELL_BLUE_NOISE[bidx & 4095] > 0) {
-				if (palette.length > 64) {
-					float kappa = saliencies[bidx] < .6f ? beta * .15f / saliencies[bidx] : beta * .4f / saliencies[bidx];
-					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], kappa, strength, x, y);
-				}
-				else if (palette.length > 16 && weight < .005)
-					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * normalDistribution(saliencies[bidx], .5f) + beta, strength, x, y);
-				else
-					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
+			if (palette.length > 64) {
+				float kappa = saliencies[bidx] < .6f ? beta * .15f / saliencies[bidx] : beta * .4f / saliencies[bidx];
+				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], kappa, strength, x, y);
 			}
+			else if (palette.length > 16 && weight < .005)
+				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * normalDistribution(saliencies[bidx], .5f) + beta, strength, x, y);
+			else
+				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], beta * .5f / saliencies[bidx], strength, x, y);
 		}
 
 		double gamma = (palette.length <= 32 && weight < .01 && weight > .007) ? 1 - beta : beta;
@@ -179,7 +177,7 @@ public class GilbertCurve {
 		if (DITHER_MAX < 16 && palette.length > 4 && saliencies[bidx] < .6f && CIELABConvertor.Y_Diff(pixel, c2) > margin - 1)
 			c2 = Color.argb(a_pix, r_pix, g_pix, b_pix);
 		if (palette.length > 32 && saliencies[bidx] > .95) {
-			float kappa = beta * (.75f - palette.length / 128f) * saliencies[bidx];
+			float kappa = beta * Math.max(.05f, .75f - palette.length / 128f) * saliencies[bidx];
 			c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], kappa, strength, x, y);
 		}
 
