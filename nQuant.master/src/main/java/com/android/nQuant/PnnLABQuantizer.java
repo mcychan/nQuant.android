@@ -16,6 +16,7 @@ import java.util.Random;
 
 public class PnnLABQuantizer extends PnnQuantizer {
 	private boolean isNano = false;
+	private static final double TRANS_RATE = 1 - (512 + 101) / 768.0;
 	protected float[] saliencies;
 	private final Map<Integer, Lab> pixelMap = new HashMap<>();
 	
@@ -59,7 +60,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 
 			Lab lab2 = new Lab();
 			lab2.alpha = bins[i].ac; lab2.L = bins[i].Lc; lab2.A = bins[i].Ac; lab2.B = bins[i].Bc;
-			double alphaDiff = hasSemiTransparency ? BitmapUtilities.sqr(lab2.alpha - lab1.alpha) / Math.exp(1.75) : 0;
+			double alphaDiff = hasSemiTransparency ? BitmapUtilities.sqr(lab2.alpha - lab1.alpha) * TRANS_RATE : 0;
 			double nerr = nerr2 * alphaDiff;
 			if (nerr >= err)
 				continue;
@@ -345,7 +346,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		for (short i = k; i < palette.length; ++i) {
 			int c2 = palette[i];
 
-			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) / Math.exp(1.5) : 0;
+			double curdist = hasSemiTransparency ? BitmapUtilities.sqr(Color.alpha(c2) - Color.alpha(c)) * TRANS_RATE : 0;
 			if (curdist > mindist)
 				continue;
 
