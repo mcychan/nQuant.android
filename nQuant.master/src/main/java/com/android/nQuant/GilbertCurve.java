@@ -32,7 +32,8 @@ public class GilbertCurve {
 	}
 
 	private byte ditherMax, DITHER_MAX;
-	private float beta;
+	private final float noiseDampener = 0.8f;
+	private float baseSpread, beta;
 	private float[] weights;
 	private final boolean dither, hasAlpha, sortedByYDiff;
 	private final int width, height;
@@ -53,6 +54,7 @@ public class GilbertCurve {
 		this.height = height;
 		this.pixels = image;
 		this.palette = palette;
+		this.baseSpread = (255.0f / (float) Math.cbrt(palette.length)) * noiseDampener;
 		this.qPixels = qPixels;
 		this.ditherable = ditherable;
 		this.hasAlpha = weight < 0;
@@ -225,8 +227,14 @@ public class GilbertCurve {
 
 			final int acceptedDiff = Math.max(2, palette.length - margin);
 			if(saliencies != null && (CIELABConvertor.Y_Diff(pixel, c2) > acceptedDiff || CIELABConvertor.U_Diff(pixel, c2) > (2 * acceptedDiff))) {
-				final float strength = 1 / 3f;
-				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
+				if (dither && !(hasAlpha && palette.length < 24)) {
+					float saliency = (saliencies != null) ? saliencies[bidx] : 1.0f;
+					c2 = BlueNoise.ditherPixel(pixel, saliency, x, y, baseSpread, 0);
+				}
+				else {
+					final float strength = 1 / 3f;
+					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], 1 / saliencies[bidx], strength, x, y);
+				}
 				qPixels[bidx] = ditherable.nearestColorIndex(palette, c2, bidx);
 			}
 		}
@@ -271,8 +279,14 @@ public class GilbertCurve {
 			if (saliencies != null)
 				qPixels[bidx] = ditherPixel(x, y, c2, beta);
 			else if (CIELABConvertor.Y_Diff(pixel, c2) > 3 && CIELABConvertor.U_Diff(pixel, c2) > 3) {
-				final float strength = 1 / 3f;
-				c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], strength, strength, x, y);
+				if (dither) {
+					float saliency = (saliencies != null) ? saliencies[bidx] : 1.0f;
+					c2 = BlueNoise.ditherPixel(pixel, saliency, x, y, baseSpread, 0);
+				}
+				else {
+					final float strength = 1 / 3f;
+					c2 = BlueNoise.diffuse(pixel, palette[qPixels[bidx]], strength, strength, x, y);
+				}
 				qPixels[bidx] = ditherable.nearestColorIndex(palette, c2, bidx);
 			}
 		}
@@ -359,8 +373,7 @@ public class GilbertCurve {
 
 	private void run() throws Exception
 	{
-		if(!sortedByYDiff)
-			initWeights(DITHER_MAX);
+		initWeights(DITHER_MAX);
 
 		if (width >= height)
 			generate2d(0, 0, width, 0, 0, height);

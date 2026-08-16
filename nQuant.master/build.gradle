@@ -1,40 +1,40 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 33
+	compileSdkVersion = 35
 
-    packagingOptions {
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
-    }
+	packagingOptions {
+		exclude 'META-INF/LICENSE.txt'
+		exclude 'META-INF/NOTICE.txt'
+	}
 
-    defaultConfig {
-        minSdkVersion 32
-        targetSdkVersion 33
+	defaultConfig {
+		minSdkVersion 32
+		targetSdkVersion 35
 
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+		testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
-    }
+	}
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-    namespace 'com.android.nQuant'
+	buildTypes {
+		release {
+			minifyEnabled = false
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+		}
+	}
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_21
+		targetCompatibility JavaVersion.VERSION_21
+	}
+	namespace 'com.android.nQuant'
 
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'], )
+	implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'], )
 
-    implementation 'androidx.appcompat:appcompat:1.4.0-alpha03'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+	implementation 'androidx.appcompat:appcompat:1.8.0'
+	testImplementation 'junit:junit:4.13.2'
+	androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+	androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">nQuant.android</string>
+    <string name="sample_image_description">Sample preview image</string>
+    <string name="btn_convert_colors">Convert to 256 colors</string>
 </resources>

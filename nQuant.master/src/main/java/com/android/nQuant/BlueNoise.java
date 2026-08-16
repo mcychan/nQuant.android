@@ -2,12 +2,17 @@ package com.android.nQuant;
 /*
  * Alan Wolfe, Nathan Morrical, Tomas Akenine-Möller, Ravi Ramamoorthi:
  * Scalar Spatiotemporal Blue Noise Masks. CoRR abs/2112.09629 (2021)
- * Copyright (c) 2022 - 2023 Miller Cy Chan
+ * Copyright (c) 2022 - 2026 Miller Cy Chan
  */
 
 import android.graphics.Color;
+import androidx.core.math.MathUtils;
+
+import static com.android.nQuant.BitmapUtilities.BYTE_MAX;
 
 public class BlueNoise {
+	static final int BLUE_NOISE_SIZE = 64;
+
 	// Reference mask from: https://tellusim.com/download/noise/64x64_l64_s16.png
 	// Made from: https://github.com/Tellusim/BlueNoise
 	static final byte[] TELL_BLUE_NOISE = {
@@ -196,14 +201,6 @@ public class BlueNoise {
 		return Color.argb(a_pix, r_pix, g_pix, b_pix);
 	}
 
-    static int[] processImagePixels(final Integer[] palette, final int[] qPixels) {
-        int[] qPixel32s = new int[qPixels.length];
-        for (var i = 0; i < qPixels.length; ++i)
-            qPixel32s[i] = palette[qPixels[i]];
-
-        return qPixel32s;
-    }
-
 	public static int[] dither(final int width, final int height, final int[] pixels, final Integer[] palette, final Ditherable ditherable, final int[] qPixels, final float weight)
 	{
 		final float strength = 1 / 3f;
@@ -220,4 +217,105 @@ public class BlueNoise {
 
 		return qPixels;
 	}
+
+	// Convert signed-byte blue-noise value (-128 … 127) → float [0, 1]
+	// (the +0.5 / 256 form is the conventional unbiased mapping)
+	private static float blueNoiseByteToFloat(byte v)
+	{
+		return (v + 0.5f) * (1.0f / 256.0f);
+	}
+
+	// Optional: convert directly to a centered value in [-0.5, 0.5]
+	// (useful if you want to skip the “- 0.5f” later)
+	private static float blueNoiseByteToCentered(byte v)
+	{
+		return (v + 0.5f) * (1.0f / 256.0f) - 0.5f;
+		// almost identical alternative:  return static_cast<float>(v) * (1.0f / 255.0f);
+	}
+
+	private static float getTemporalBlueNoise(int x, int y, int frameIndex)
+	{
+		// simple temporal offset (replace with a better 3-D sequence if you have one)
+		final int ox = (x + (frameIndex * 13)) & (BLUE_NOISE_SIZE - 1);
+		final int oy = (y + (frameIndex * 29)) & (BLUE_NOISE_SIZE - 1);
+		final int index = oy * BLUE_NOISE_SIZE + ox;
+		final byte raw = (index < TELL_BLUE_NOISE.length) ? TELL_BLUE_NOISE[index] : TELL_BLUE_NOISE[index & 4095];
+		return blueNoiseByteToFloat(raw);               // returns [0,1]
+	}
+
+	private static float getLuminanceFromSaliency(float saliency, int alpha, float saliencyBase)
+	{
+		// Avoid division by zero for fully transparent pixels
+		if (alpha == 0) {
+			return 0.0f;
+		}
+
+		float alphaNormalized = alpha / 255.0f;
+		float scale = (1.0f - saliencyBase) * alphaNormalized;
+
+		if (scale <= 0.0f) {
+			return 0.0f;
+		}
+
+		// Invert the formula to isolate L
+		float L = (saliency - saliencyBase) / scale;
+
+		// Clamp L to the valid CIELAB Lightness range [0.0, 1.0]
+		return MathUtils.clamp(L, 0.0f, 1.0f);
+	}
+
+	private static float getLuminanceFromSaliency(float saliency, int alpha)
+	{
+		return getLuminanceFromSaliency(saliency, alpha, 0.1f);
+	}
+
+	protected static int ditherPixel(final int pixel, final float saliency, final int x, final int y, final float baseSpread, final int frameIndex)
+	{
+		float luminance = getLuminanceFromSaliency(saliency, Color.alpha(pixel));
+		// Taper noise to 0 when luminance approaches 1.0 (pure white sky)
+		// Smoothstep / quadratic decay in the top 15% brightness range [0.85, 1.0]
+		float highlightDampener = 1.0f;
+		if (luminance > 0.85f) {
+			// Smoothly drop from 1.0 (at 0.85) to 0.0 (at 1.0)
+			float t = (luminance - 0.85f) / 0.15f;
+			highlightDampener = (1.0f - t) * (1.0f - t);
+		}
+
+		// Blue-noise sample centered to [-0.5, 0.5]
+		final float noise = getTemporalBlueNoise(x, y, frameIndex) - 0.5f;
+		float offset = noise * baseSpread * saliency * highlightDampener;
+
+		// Apply noise and clamp safely to RGB limits
+		int r = MathUtils.clamp((int)(Color.red(pixel) + offset), 0, BYTE_MAX);
+		int g = MathUtils.clamp((int)(Color.green(pixel) + offset), 0, BYTE_MAX);
+		int b = MathUtils.clamp((int)(Color.blue(pixel) + offset), 0, BYTE_MAX);
+		int a = Color.alpha(pixel);
+
+		return Color.argb(a, r, g, b);
+	}
+	
+	protected static int[] quantizeImage(final int width, final int height, final int[] pixels, final Integer[] palette,
+			final Ditherable ditherable, float[] saliencies, int frameIndex)
+	{
+		int[] qPixels = new int[pixels.length];
+		int nMaxColors = palette.length;
+
+		// Introduce a tuning multiplier (e.g., 0.5f to 0.8f) to reduce overall noise amplitude
+		final float noiseDampener = 0.8f;
+		final float baseSpread = (255.0f / (float) Math.cbrt(nMaxColors)) * noiseDampener;
+		
+		for (int y = 0; y < height; ++y) {
+			for (int x = 0; x < width; ++x) {
+				final int bidx = x + y * width;
+				int pixel = pixels[bidx];
+
+				float saliency = (saliencies != null) ? saliencies[bidx] : 1.0f;
+				int noisyArgb = ditherPixel(pixel, saliency, x, y, baseSpread, frameIndex);
+				qPixels[bidx] = palette[ditherable.nearestColorIndex(palette, noisyArgb, bidx)];
+			}
+		}
+
+		return qPixels;
+	}
+	
 }

@@ -17,16 +17,18 @@ buildscript {
 
 allprojects {
 	gradle.projectsEvaluated {
-		tasks.withType(JavaCompile) {
-			options.encoding = 'UTF-8'
-		}
-	}
+		tasks.withType(JavaCompile).tap {
+            configureEach {
+                options.encoding = 'UTF-8'
+            }
+        }
+    }
 	repositories {
 		google()
 		mavenCentral()
 	}
 }
 
-task clean(type: Delete) {
-	delete rootProject.buildDir
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
 }

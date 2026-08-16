@@ -338,7 +338,7 @@ public class PnnLABQuantizer extends PnnQuantizer {
 		short k = 0;
 		if (Color.alpha(c) <= alphaThreshold)
 			c = m_transparentColor;
-		if(palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
+		if (palette.length > 2 && hasAlpha() && Color.alpha(c) > alphaThreshold)
 			k = 1;
 
 		double mindist = Integer.MAX_VALUE;
@@ -507,6 +507,18 @@ public class PnnLABQuantizer extends PnnQuantizer {
 				saliencies[i] = saliencyBase + (1 - saliencyBase) * lab1.L / 100f * lab1.alpha / 255f;
 			}
 		}
+
+		boolean fullDither = !hasAlpha() && palette.length >= 128 && weight < .02;
+		if (dither && fullDither) {
+			int[] qPixels = BlueNoise.quantizeImage(width, height, pixels, palette, ditherable, saliencies, 0);
+
+			closestMap.clear();
+			nearestMap.clear();
+			pixelMap.clear();
+
+			return qPixels;
+		}
+
 		int[] qPixels = GilbertCurve.dither(width, height, cPixels, palette, ditherable, saliencies, weight, dither);
 
 		if (!dither && palette.length > 32) {
